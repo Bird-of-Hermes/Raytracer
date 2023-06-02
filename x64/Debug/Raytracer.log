@@ -1,0 +1,4 @@
+﻿  main.cpp
+C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\main.cpp(19,68): warning C4244: 'argumento': conversão de 'float' para 'uint32_t', possível perda de dados
+C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\main.cpp(19,34): warning C4244: 'argumento': conversão de 'float' para 'uint32_t', possível perda de dados
+  Raytracer.vcxproj -> C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\x64\Debug\Raytracer.exe
