@@ -1,27 +1,49 @@
 #include "Canvas.h"
-#include "Projectile.h"
+#include "Matrixes.h"
 
 int main()
 {
-	Canvas canv(900, 600);
+	Canvas Clock(600, 600);
 
-	Projectile proj(Tuple::Point(1.0f, 1.0f, 0.0f), Tuple::Normalize(Tuple::Pos(1.0f, 1.8f, 0.0f)) * 11.25f);
-	Environment env(Tuple::Pos(0.01f, -0.1f, 0.0f), Tuple::Pos(-0.02f, 0.011f, 0.0f));
-
-	for (size_t i = 0; i < canv.Width(); i++)
+	Tuple::Pos Hours[12]
 	{
-		for (size_t j = 0; j < canv.Height(); j++)
-		{
-			proj = tick(env, proj);
-			if (proj.m_coord.m_y >= canv.Height() || proj.m_coord.m_y < 0 || proj.m_coord.m_x >= canv.Width() || proj.m_coord.m_x < 0)
-				continue;
-			else
-				canv.WritePixel(canv.Width() - proj.m_coord.m_x, canv.Height() - proj.m_coord.m_y, Color(1.0f, 0.0f, 0.0f));
-		}
+		Tuple::Point(0.0f, 1.0f, 0.0f),  // 12
+		Tuple::Point(0.0f, 1.0f, 0.0f),  // 11
+		Tuple::Point(0.0f, 1.0f, 0.0f),  // 10
+		Tuple::Point(0.0f, 1.0f, 0.0f),  // 9
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 8
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 7
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 6
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 5
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 4
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 3
+		Tuple::Point(0.0f, 1.0f, 0.0f),	 // 2
+		Tuple::Point(0.0f, 1.0f, 0.0f)   // 1
+	};
+
+	// Rotate points
+	for (int i = 0; i < 12; i++)
+		Hours[i] = RotateZaxis(30.0f * i) * Hours[i];
+
+	// Translate and scale points
+	const float scaleFactor = 0.5f;
+	const float xOffset = Clock.Width() * 0.5f;
+	const float yOffset = Clock.Height() * 0.5f;
+
+	int32_t x[12]{};
+	int32_t y[12]{};
+
+	for (int i = 0; i < 12; i++)
+	{
+		x[i] = static_cast<int32_t>(scaleFactor * (Hours[i].m_x * xOffset) + xOffset);
+		y[i] = static_cast<int32_t>(scaleFactor * (Hours[i].m_y * yOffset) + yOffset);
 	}
 
-	canv.ExportAsPPM();
-	system("RAYTRACER.ppm");
+	// Draw points
+	for (int i = 0; i < 12; i++)
+		Clock.WritePixel(static_cast<int>(x[i]), static_cast<int>(y[i]), Color(1.0f, 1.0f, 1.0f));
+
+	Clock.ExportAsPPM();
 
 	return 0;
 }
