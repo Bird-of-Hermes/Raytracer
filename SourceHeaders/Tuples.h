@@ -79,10 +79,26 @@ struct Color
 	const Color operator/(float other) const { return { r / other, g / other, b / other }; }
 	friend std::ostream& operator<<(std::ostream& os, const Color& cor) { os << "RGB (" << cor.r << ", " << cor.g << ", " << cor.b << ")"; return os; }
 };
-#define RED Color{1.0f,0.0f,0.0f}
+
+//~~~~~~~~~~~~~~~~ Colors~~~~~~~~~~~~~~~//
+// Primary
+#define RED Color{1.0f, 0.0f, 0.0f}
 #define GREEN Color{0.0f, 1.0f, 0.0f}
 #define BLUE Color{0.0f, 0.0f, 1.0f}
 #define WHITE Color{1.0f, 1.0f, 1.0f}
 #define BLACK Color{0.0f, 0.0f, 0.0f}
+
+// Secondary
+#define MAGENTA Color{1.0f, 0.0f, 1.0f}
+#define YELLOW Color{1.0f, 1.0f, 0.0f}
+#define CYAN Color{0.0f, 1.0f, 1.0f}
+#define GRAY Color{0.5f, 0.5f, 0.5f}
+
+// Tertiary
+#define ORANGE Color{1.0f, 0.647f, 0.0f}
+#define VIOLET Color{0.933f, 0.51f, 0.933f}
+#define LEMONGREEN Color{0.196f, 0.804f, 0.196f}
+#define PURPLEBLUE Color{0.541f, 0.169f, 0.882f}
+#define TOMATORED Color{1.0f, 0.388f, 0.278f}
 
 #endif

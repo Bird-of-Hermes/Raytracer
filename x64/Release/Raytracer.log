@@ -1,3 +1,4 @@
-﻿  main.cpp
+﻿  Intersections.cpp
+  main.cpp
   LINK : /LTCG especificado mas sem geração de código; remova /LTCG do link da linha de comando para melhorar performance do vinculador
   Raytracer.vcxproj -> C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\x64\Release\Raytracer.exe

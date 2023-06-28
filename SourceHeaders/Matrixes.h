@@ -465,10 +465,10 @@ inline const float Determinant4x4(Matrix4x4f & matrix)
 									   matrix[8],  matrix[9],  matrix[10],
 									   matrix[12], matrix[13], matrix[14]);
 }
+inline const float toRadians(float degrees) { return degrees * 0.0174533f; }
 
 // Matrix Transforms
 
-inline const float toRadians(float degrees) { return degrees * 0.0174533f; }
 inline const Matrix4x4f Translate(Tuple::Pos point)
 {
 	return
@@ -566,4 +566,28 @@ inline const Matrix4x4f Shear(float xy, float xz, float yx, float yz, float zx, 
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 }
+inline const Matrix4x4f ViewTransform(Tuple::Pos from, Tuple::Pos to, Tuple::Pos up)
+{
+
+// Specify where the eye is supposed to be in the scene (the "from" parameter), the point in the scene at
+// which it wants to look (the "to" parameter), and a vector indicating which direction is up.
+// The function then returns the corresponding transformation matrix.
+
+	const auto forward = Tuple::Normalize(to - from);
+	const auto left = Tuple::CrossProduct(forward, Tuple::Normalize(up));
+	const auto trueup = Tuple::CrossProduct(left, forward);
+	const Matrix4x4f orientation
+	{
+		left.m_x, left.m_y, left.m_z, 0,
+		trueup.m_x, trueup.m_y, trueup.m_z, 0,
+		-forward.m_x, -forward.m_y, -forward.m_z, 0,
+		0,				 0,				 0,				 1
+	};
+
+	return
+	{
+		orientation * Translate(-from.m_x, -from.m_y, -from.m_z)
+	};
+}
+#define DefaultOrientation IdentityMat4x4f()
 #endif

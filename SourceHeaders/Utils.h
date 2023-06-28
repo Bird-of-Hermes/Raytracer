@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include <memory>
+#include <vector>
 #include "Objects.h"
 #include "Lights.h"
 
@@ -28,8 +29,18 @@ namespace Utils
 		void emplace_back(T* value) { emplace_back(std::move(value)); }
 		inline const size_t Size() const { return size; }
 
+		operator std::vector<T>() const
+		{
+			std::vector<T> vec;
+			for (size_t i = 0; i < size; i++)
+			{
+				vec.emplace_back(at[i]);
+			}
+			return vec;
+		}
 		operator T*() { return at; }
 		T& operator[](const size_t index) { return at[index]; }
+		const T& operator[](const size_t index) const { return at[index]; }
 
 		Vector() { size = 0; at = nullptr; }
 		Vector(const size_t Size) : size(Size) { at = new T[Size]; }

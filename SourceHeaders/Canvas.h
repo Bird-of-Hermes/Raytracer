@@ -16,7 +16,7 @@ public:
 	const int32_t Width() const { return width; }
 	const int32_t Height() const { return height; }
 	const Color PixelAt(uint32_t x, uint32_t y) const { return cor[x][y]; }
-	inline const void WritePixel(int32_t x, int32_t y, Color color)
+	inline const void WritePixel(int32_t y, int32_t x, Color color)
 	{
 		if (y >= Height() || y < 0 || x >= Width() || x < 0)
 		{

@@ -62,19 +62,18 @@ public:
 
 const INTERSECTIONS Hit(std::vector<INTERSECTIONS>& vector);
 void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
-void FullIntersection(Object* obj, const Ray& R, std::vector<INTERSECTIONS>& vector);
-inline void IntersectWorld(World* world, const Ray& R, std::vector<INTERSECTIONS>& vector)
+const void FullIntersection(Object* obj, const Ray& R, std::vector<INTERSECTIONS>& vector);
+inline const void IntersectWorld(World* world, const Ray& R, std::vector<INTERSECTIONS>& vector)
 {
 	for (size_t i = 0; i < world->getObjVector().size(); i++)
 	{
 		FullIntersection(world->getObjVector().operator[](i), R, vector);
 	}
 }
-const void SortIntersections(std::vector<INTERSECTIONS>& vector);
-
+inline const void SortIntersections(std::vector<INTERSECTIONS>& vector) { std::sort(vector.begin(), vector.end()); }
 inline const Color Shade_Hit(World& world, const PRECOMPUTATIONS& pc)
 {
 	return Lighting(static_cast<Sphere*>(pc.inter.m_obj)->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv);
 }
-
+Color ColorAt(World* world, const Ray& ray, std::vector<INTERSECTIONS>& vector);
 #endif

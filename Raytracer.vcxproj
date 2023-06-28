@@ -166,6 +166,8 @@
     <ClInclude Include="SourceHeaders\Canvas.h" />
     <ClInclude Include="SourceHeaders\Matrixes.h" />
     <ClInclude Include="SourceHeaders\Projectile.h" />
+    <ClInclude Include="SourceHeaders\Renderer.h" />
+    <ClInclude Include="SourceHeaders\Timer.h" />
     <ClInclude Include="SourceHeaders\Tuples.h" />
     <ClInclude Include="SourceHeaders\Utils.h" />
   </ItemGroup>
