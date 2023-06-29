@@ -26,7 +26,22 @@ namespace Utils
 			m_data = newAlloc; // pointer to the new address
 			++m_size;
 		}
-		void emplace_back(T*&& value) { emplace_back(std::move(*value)); }
+		void emplace_newptr(void* ptr)
+		{
+			T* newAlloc = new T[m_size + 1];
+
+			// moves old vector to new vector
+			for (size_t i = 0; i < m_size; i++)
+			{
+				newAlloc[i] = std::move(m_data[i]);
+			}
+			newAlloc[m_size] = static_cast<T>(ptr); // moves the argument to the last location on the vector
+
+			delete[] m_data; // frees old vector
+			m_data = newAlloc; // pointer to the new address
+			++m_size;
+		}
+
 		constexpr void fill_in(const T&& type)
 		{
 			if (m_place < m_size)

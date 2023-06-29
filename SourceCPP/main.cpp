@@ -138,7 +138,7 @@ void Chapter7(float x = 480, float y = 480)
 	// world light
 	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
 
-	Camera camera{ x, y, 99.0f };
+	Camera camera{ x, y, 95.8f };
 	camera.SetTransform(ViewTransform(Pt(0, 1.5f, -5.0f), Pt(0, 1, 0), Vec(0, 1, 0)));
 
 	Render(camera, world);
@@ -166,7 +166,7 @@ int main()
 	//Chapter6();
 
 	Chapter7();
-	
+
 	//system("Files\\RAYTRACER.ppm");
 	//Testes();
 

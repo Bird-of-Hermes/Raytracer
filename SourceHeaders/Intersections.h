@@ -60,7 +60,7 @@ public:
 };
 
 
-const INTERSECTIONS ClosestHit(Utils::Vector<INTERSECTIONS>& vector, const size_t size);
+const INTERSECTIONS ClosestHit(Utils::Vector<INTERSECTIONS>& vector, const uint32_t size);
 const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
 const void FullIntersection(Object* obj, const Ray& R,Utils::Vector<INTERSECTIONS>& vector);
 inline const void IntersectWorld(World* world, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)

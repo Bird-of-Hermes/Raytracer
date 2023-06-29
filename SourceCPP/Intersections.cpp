@@ -1,6 +1,6 @@
 #include "..\SourceHeaders\Intersections.h"
 
-const INTERSECTIONS ClosestHit(Utils::Vector<INTERSECTIONS>& vector, const size_t size)
+const INTERSECTIONS ClosestHit(Utils::Vector<INTERSECTIONS>& vector, const uint32_t size)
 {
 	static uint32_t counter = 1;
 	uint32_t num = (counter - 1) * (size * 2);
@@ -144,7 +144,7 @@ Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector
 	IntersectWorld(world, ray, vector);
 
 #if true
-	const INTERSECTIONS f = ClosestHit(vector, world->getObjVector().size());
+	const INTERSECTIONS f = ClosestHit(vector, static_cast<uint32_t>(world->getObjVector().size()));
 
 	if (f.m_t > 0)
 		return Shade_Hit(*world, { ray, f });
