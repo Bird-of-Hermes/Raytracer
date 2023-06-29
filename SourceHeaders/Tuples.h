@@ -31,11 +31,11 @@ namespace Tuple
 		float m_type;
 
 		Pos(float x = 0.0f, float y = 0.0f, float z = 0.0f, float type = 0) : m_x(x), m_y(y), m_z(z), m_type(type) {} // true (1) for points, false (0) for vectors
-		Pos operator+(const Pos& b) const { return { this->m_x + b.m_x, this->m_y + b.m_y, this->m_z + b.m_z, abs(this->m_type + b.m_type) }; }
-		Pos operator-(const Pos& b) const{ return { this->m_x - b.m_x, this->m_y - b.m_y, this->m_z - b.m_z, abs(this->m_type - b.m_type) }; }
-		Pos operator-() const { return { -m_x, -m_y, -m_z }; }
-		Pos operator*(const Pos& b) const { return { this->m_x * b.m_x, this->m_y * b.m_y, this->m_z * b.m_z, abs(this->m_type * b.m_type) }; }
-		Pos operator*(float b)	const { return { this->m_x * b, this->m_y * b, this->m_z * b }; }
+		inline Pos operator+(const Pos& b) const { return { this->m_x + b.m_x, this->m_y + b.m_y, this->m_z + b.m_z, abs(this->m_type + b.m_type) }; }
+		inline Pos operator-(const Pos& b) const{ return { this->m_x - b.m_x, this->m_y - b.m_y, this->m_z - b.m_z, abs(this->m_type - b.m_type) }; }
+		inline Pos operator-() const { return { -m_x, -m_y, -m_z }; }
+		inline Pos operator*(const Pos& b) const { return { this->m_x * b.m_x, this->m_y * b.m_y, this->m_z * b.m_z, abs(this->m_type * b.m_type) }; }
+		inline Pos operator*(float b)	const { return { this->m_x * b, this->m_y * b, this->m_z * b }; }
 		friend std::ostream& operator<<(std::ostream& os, const Pos& pos) 
 		{
 			if(pos.m_type == 0)

@@ -58,8 +58,8 @@ public:
 	World() {}
 	~World() {}
 
-	void AddObject(Object * obj) { m_ObjVector.emplace_back(obj); }
-	void DefaultWorld()
+	constexpr void AddObject(Object * obj) { m_ObjVector.emplace_back(obj); }
+	const void DefaultWorld()
 	{
 		m_Lumini = { Tuple::Point(-10.0f, 10.0f, -10.0f), WHITE }; // world light
 
@@ -69,9 +69,9 @@ public:
 		static_cast<Sphere*>(m_ObjVector[0])->SetMaterial(Materials::Materials{Color{0.8f, 1.0f, 0.6f}, 0.0f, 0.7f, 0.2f, 0.0f}); // Sphere 0 color
 		static_cast<Sphere*>(m_ObjVector[1])->SetTransform(Scale(0.5f, 0.5f, 0.5f)); // Sphere 1 scale
 	}
-	inline const void SetLight(const Light & light) { m_Lumini = light;}
-	inline const Light GetLight() const { return m_Lumini; }
-	inline const std::vector<Object*> getObjVector() const { return m_ObjVector;}
+	constexpr void SetLight(const Light & light) { m_Lumini = light;}
+	const Light GetLight() const { return m_Lumini; }
+	constexpr std::vector<Object*> getObjVector() const { return m_ObjVector;}
 
 private:
 	std::vector<Object*> m_ObjVector;

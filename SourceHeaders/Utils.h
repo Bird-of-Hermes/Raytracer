@@ -13,45 +13,68 @@ namespace Utils
 	public:
 		void emplace_back(const T&& type)
 		{
-			T* newAlloc = new T[size + 1];
+			T* newAlloc = new T[m_size + 1];
 
 			// moves old vector to new vector
-			for (size_t i = 0; i < size; i++)
+			for (size_t i = 0; i < m_size; i++)
 			{
-				newAlloc[i] = std::move(at[i]);
+				newAlloc[i] = std::move(m_data[i]);
 			}
-			newAlloc[size] = std::move(type); // moves the argument to the last location on the vector
+			newAlloc[m_size] = std::move(type); // moves the argument to the last location on the vector
 
-			delete[] at; // frees old vector
-			at = newAlloc; // pointer to the new address
-			++size;
+			delete[] m_data; // frees old vector
+			m_data = newAlloc; // pointer to the new address
+			++m_size;
 		}
-		void emplace_back(T* value) { emplace_back(std::move(value)); }
-		inline const size_t Size() const { return size; }
+		void emplace_back(T*&& value) { emplace_back(std::move(*value)); }
+		constexpr void fill_in(const T&& type)
+		{
+			if (m_place < m_size)
+			{
+				m_data[m_place] = std::move(type);
+				m_place++;
+			}
+			else
+			{
+				std::cerr << "\nfill_in() method is inadequate for this use case. Consider switching to other container other than Utils::Vector\n";
+				std::cerr << "m_place = " << m_place << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
 
 		operator std::vector<T>() const
 		{
 			std::vector<T> vec;
-			for (size_t i = 0; i < size; i++)
+			for (size_t i = 0; i < m_size; i++)
 			{
-				vec.emplace_back(at[i]);
+				vec.emplace_back(m_data[i]);
 			}
 			return vec;
 		}
-		operator T*() { return at; }
-		T& operator[](const size_t index) { return at[index]; }
-		const T& operator[](const size_t index) const { return at[index]; }
+		operator T* () { return m_data; }
+		T& operator[](const uint32_t index) { return m_data[index]; }
+		constexpr T& operator[](const uint32_t index) const { return m_data[index]; }
+	    constexpr T* at(const uint32_t index) { return &m_data[index]; }
+		constexpr uint32_t Size() const { return m_size; }
+		constexpr T* begin() const { return m_data; }
+		constexpr T* end() const { return m_data + m_size; }
+		T* begin() { return m_data; }
+		T* end() { return m_data + m_size; }
 
-		Vector() { size = 0; at = nullptr; }
-		Vector(const size_t Size) : size(Size) { at = new T[Size]; }
-		~Vector() { delete[] at; }
+		Vector() { m_size = 0; m_data = nullptr; m_place = 0; }
+		Vector(const uint32_t Size) : m_size(Size) { m_data = new T[Size]; m_place = 0; }
+		~Vector() { delete[] m_data; }
 
-	public:
-		T* at;
-		size_t size;
+	private:
+		T* m_data;
+		uint32_t m_size;
+		uint32_t m_place;
 	};
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
 }
-inline const unsigned int FastRand(unsigned int index)
+inline constexpr unsigned int FastRand(unsigned int index)
 {
 	index = (index << 13) ^ index;
 	return ((index * (index * index * 15731 + 789221) + 1376312589) & 0x7fffffff);

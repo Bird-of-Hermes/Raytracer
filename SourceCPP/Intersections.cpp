@@ -1,18 +1,24 @@
 #include "..\SourceHeaders\Intersections.h"
 
-const INTERSECTIONS Hit(std::vector<INTERSECTIONS>& vector)
+const INTERSECTIONS ClosestHit(Utils::Vector<INTERSECTIONS>& vector, const size_t size)
 {
-	for (size_t i = 0; i < vector.size(); i++)
+	static uint32_t counter = 1;
+	uint32_t num = (counter - 1) * (size * 2);
+	float maiorquezero = 10000000.0f;
+	INTERSECTIONS f = vector[0];
+	for (uint32_t i = num; i < num + (size * 2); i++)
 	{
-		if (vector.at(i).m_t > 0.0f)
+		if (vector[i].m_t > 0.0f && vector[i].m_t < maiorquezero)
 		{
-			return vector.at(i);
+			maiorquezero = vector[i].m_t;
+			f = vector[i];
 		}
 	}
-	return {0.0f, *vector.at(0).m_obj};
+	++counter;
+	return f;
 }
 
-void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
+const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
 {
 	static uint32_t z = 0;
 
@@ -80,7 +86,7 @@ void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
 	}
 }
 
-const void FullIntersection(Object* obj, const Ray& R, std::vector<INTERSECTIONS>& vector)
+const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
 {
 	if (!static_cast<Sphere*>(obj)->GetTransform().isEqual(IdentityMat4x4f()))
 	{
@@ -97,16 +103,16 @@ const void FullIntersection(Object* obj, const Ray& R, std::vector<INTERSECTIONS
 		// se não houver intersecções entre o raio e a esfera
 		if (discriminant < 0)
 		{
-			vector.emplace_back(0.0f, *obj);
-			vector.emplace_back(0.0f, *obj);
+			vector.fill_in({ 0.0f, *obj });
+			vector.fill_in({ 0.0f, *obj });
 			return;
 		}
 
 		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
 		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
 
-		vector.emplace_back(i1, *obj);
-		vector.emplace_back(i2, *obj);
+		vector.fill_in({ i1, *obj });
+		vector.fill_in({ i2, *obj });
 	}
 	else
 	{
@@ -119,51 +125,50 @@ const void FullIntersection(Object* obj, const Ray& R, std::vector<INTERSECTIONS
 
 		if (discriminant < 0)
 		{
-			vector.emplace_back(0.0f, *obj);
-			vector.emplace_back(0.0f, *obj);
+			vector.fill_in({ 0.0f, *obj });
+			vector.fill_in({ 0.0f, *obj });
 			return;
 		}
 
 		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
 		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
 
-		vector.emplace_back(i1, *obj);
-		vector.emplace_back(i2, *obj);
+		vector.fill_in({ i1, *obj });
+		vector.fill_in({ i2, *obj });
 	}
 }
 
-Color ColorAt(World* world, const Ray& ray, std::vector<INTERSECTIONS>& vector)
+Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector)
 {
+	const size_t md = vector.Size();
 	IntersectWorld(world, ray, vector);
 
-	float maiorquezero = 100000.0f;
-	INTERSECTIONS f = vector[0];
-	for (size_t i = 0; i < vector.size(); i++)
-	{
-		if (vector[i].m_t > 0.0f && vector[i].m_t < maiorquezero)
-		{
-			maiorquezero = vector[i].m_t;
-			f = vector[i];
-		}
-	}
-		
 #if true
+	const INTERSECTIONS f = ClosestHit(vector, world->getObjVector().size());
+
 	if (f.m_t > 0)
 		return Shade_Hit(*world, { ray, f });
 	else
 		return BLACK;
-
-#if false
-	const size_t loopnumber = vector.size() / world->getObjVector().size();
-	std::sort(vector.begin() + (loopnumber - 1) * world->getObjVector().size(), vector.end());
-	// If Hit()
-	for (size_t i = (loopnumber-1)*world->getObjVector().size(); i < vector.size(); i++)
-	{
-		if (vector.at(i).m_t > 0)
-			return Shade_Hit(*world, { ray, vector[i] });
-	}
-	return GRAY;
 #endif
 
+#if false
+
+	static size_t abc = 1;
+	//const size_t loopnumber = vector.Size() / world->getObjVector().size();
+	std::sort(&vector[0] + (abc - 1) * world->getObjVector().size(), &vector[0] + vector.Size());
+	
+	// If Hit()
+	for (size_t i = (abc-1) * world->getObjVector().size(); i < vector.Size(); i++)
+	{
+		if (vector.at(i)->m_t > 0)
+		{
+			++abc;
+			return Shade_Hit(*world, { ray, vector[i] });
+		}
+	}
+	++abc;
+	return GRAY;
+	
 #endif
 }

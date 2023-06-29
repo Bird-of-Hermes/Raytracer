@@ -67,9 +67,6 @@ void Chapter6(int x = 480, int y = 480)
 	//INTERSECTIONS* vector = new INTERSECTIONS[(x * y) + 1]; // +1 because intellisense is annoying
 	Utils::Vector<INTERSECTIONS> vector((x * y) + 1);
 
-	// start timer
-	const auto start = std::chrono::high_resolution_clock::now();
-
 	const Light light{ Tuple::Point(-10.0f, 10.0f, -10.0f), WHITE };
 	Sphere s;
 	s.SetMaterial({ RED, 0.1f, 0.9f, 0.9f, 75.0f });
@@ -98,21 +95,14 @@ void Chapter6(int x = 480, int y = 480)
 			Intersect(&s, r, vector);
 			const float t = vector[static_cast<size_t>(i * canv.Height() + j)].m_t;
 			if (t > 0)
-				canv.WritePixel(i, j, Lighting(s.GetMaterial(), light, r.Position(t), -r.GetDirection(), s.NormalAt(r.Position(t))));
+				canv.WritePixel(i, j, Lighting(s.GetMaterial(), light, r.Position(t), -r.GetDirection(), s.NormalAt(r.Position(t)), false));
 			else
 				canv.WritePixel(i, j, BLACK);
 		}
 	}
 	canv.ExportAsPPM();
-
-	// Time measurement
-	const auto end = std::chrono::high_resolution_clock::now();
-	const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	std::cout << "Elapsed time: " << duration << " microseconds!" << std::endl;
-
-	system("Files\\RAYTRACER.ppm");
 }
-void Chapter7(float x, float y)
+void Chapter7(float x = 480, float y = 480)
 {
 	World world;
 
@@ -120,7 +110,7 @@ void Chapter7(float x, float y)
 	const Materials::Materials mat {{0.5f, 0.5f, 0.5f}, 0.1f, 0.9f, 0.0f, 100.0f}; // floor/wall material
 	world.getObjVector().at(0)->SetTransform(Scale(10.0f, 0.01f, 10.0f));
 	world.getObjVector().at(0)->SetMaterial(mat);
-
+	
 	world.AddObject(new Sphere()); // left_wall [1]
 	world.getObjVector().at(1)->SetTransform(Translate(0, 0, 5) * RotateYaxis(-45.0f) * RotateXaxis(90.0f) * Scale(10.0f, 0.01f, 10.0f));
 	world.getObjVector().at(1)->SetMaterial(mat);
@@ -134,6 +124,7 @@ void Chapter7(float x, float y)
 	const Materials::Materials middlemat {{0.1f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.getObjVector().at(3)->SetMaterial(middlemat);
 
+	
 	world.AddObject(new Sphere()); // right [4]
 	world.getObjVector().at(4)->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
 	const Materials::Materials rightmat {{0.5f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
@@ -143,23 +134,41 @@ void Chapter7(float x, float y)
 	world.getObjVector().at(5)->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
 	const Materials::Materials leftmat {{1.0f, 0.8f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.getObjVector().at(5)->SetMaterial(leftmat);
-
+	
 	// world light
 	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
 
-	Camera camera{ x, y, 90.0f };
+	Camera camera{ x, y, 99.0f };
 	camera.SetTransform(ViewTransform(Pt(0, 1.5f, -5.0f), Pt(0, 1, 0), Vec(0, 1, 0)));
 
 	Render(camera, world);
 }
+void Testes()
+{
+	const auto eyev{ Vec(0,0,1) };
+	const auto normalv{ Vec(0,0,1) };
+	const Light lightv{ Pt(0,0,-10),{1,1,1} };
+	const bool in_shadow = true;
+	const auto point{ Pt(0,0,0) };
+	const auto m{ DefaultMaterial };
+	const auto result = Lighting(m, lightv, point, eyev, normalv, in_shadow);
+	std::cout << result << std::endl;
+}
 
 int main()
-{	
-	Timer timer;
+{
+	//~~~~~~~~~~~~~~~~~~~~~~~~ TIMER ~~~~~~~~~~~~~~~~~~~~~~~~~//
+	const Timer timer;
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
+	
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-	Chapter7(800, 800);
+
+	Chapter7();
+	
+	//system("Files\\RAYTRACER.ppm");
+	//Testes();
 
 	return 0;
 }

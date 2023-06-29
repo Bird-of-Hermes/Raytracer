@@ -20,13 +20,17 @@ private:
 	Color m_Intensity;
 };
 
-inline const Color Lighting(Materials::Materials mat, Light light, Tuple::Pos point, Tuple::Pos eyev, Tuple::Pos normalv)
+inline const Color Lighting(Materials::Materials mat, Light light, Tuple::Pos point, Tuple::Pos eyev, Tuple::Pos normalv, bool is_shadow)
 {
 	Color diffuse, specular;
 
 	const Color effective_color = mat.m_Color * light.GetIntensity();
-	const Tuple::Pos lightv = Normalize(light.GetPosition() - point);
 	const Color ambient = effective_color * mat.m_Ambient;
+	if (is_shadow)
+	{
+		return ambient;
+	}
+	const Tuple::Pos lightv = Normalize(light.GetPosition() - point);
 	const float light_dot_normal = Tuple::DotProduct(lightv, normalv);
 
 	if (light_dot_normal >= 0)
