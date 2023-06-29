@@ -5,6 +5,8 @@
 #include "Objects.h"
 #include "Lights.h"
 
+
+// Basic/unsafe implementation, beware of errors
 namespace Utils
 {
 	template<typename T>
@@ -85,9 +87,6 @@ namespace Utils
 		uint32_t m_size;
 		uint32_t m_place;
 	};
-///////////////////////////////////////////////////////////////////////////////////////////
-
-
 }
 inline constexpr unsigned int FastRand(unsigned int index)
 {
