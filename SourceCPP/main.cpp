@@ -61,6 +61,7 @@ void Chapter5(int x = 480, int y = 480)
 	std::cout << "Elapsed time: " << duration << " microseconds!" << std::endl;
 	system("Files\\RAYTRACER.ppm");
 }
+
 void Chapter6(int x = 480, int y = 480)
 {
 	Canvas canv(x, y);
@@ -102,38 +103,39 @@ void Chapter6(int x = 480, int y = 480)
 	}
 	canv.ExportAsPPM();
 }
+
 void Chapter7(float x = 480, float y = 480)
 {
 	World world;
 
 	world.AddObject(new Sphere()); // floor [0]
 	const Materials::Materials mat {{0.5f, 0.5f, 0.5f}, 0.1f, 0.9f, 0.0f, 100.0f}; // floor/wall material
-	world.getObjVector().at(0)->SetTransform(Scale(10.0f, 0.01f, 10.0f));
-	world.getObjVector().at(0)->SetMaterial(mat);
+	world.getObjVector()[0]->SetTransform(Scale(10.0f, 0.01f, 10.0f));
+	world.getObjVector()[0]->SetMaterial(mat);
 	
 	world.AddObject(new Sphere()); // left_wall [1]
-	world.getObjVector().at(1)->SetTransform(Translate(0, 0, 5) * RotateYaxis(-45.0f) * RotateXaxis(90.0f) * Scale(10.0f, 0.01f, 10.0f));
-	world.getObjVector().at(1)->SetMaterial(mat);
+	world.getObjVector()[1]->SetTransform(Translate(0, 0, 5) * RotateYaxis(-45.0f) * RotateXaxis(90.0f) * Scale(10.0f, 0.01f, 10.0f));
+	world.getObjVector()[1]->SetMaterial(mat);
 
 	world.AddObject(new Sphere()); // right_wall [2]
-	world.getObjVector().at(2)->SetTransform(Translate(0, 0, 5) * RotateYaxis(45.0f) * RotateXaxis(90.0f) * Scale(10.0f, 0.01f, 10.0f));
-	world.getObjVector().at(2)->SetMaterial(mat);
+	world.getObjVector()[2]->SetTransform(Translate(0, 0, 5) * RotateYaxis(45.0f) * RotateXaxis(90.0f) * Scale(10.0f, 0.01f, 10.0f));
+	world.getObjVector()[2]->SetMaterial(mat);
 
 	world.AddObject(new Sphere()); // middle [3]
-	world.getObjVector().at(3)->SetTransform(Translate(-0.5f, 1.0f, 0.5f));
+	world.getObjVector()[3]->SetTransform(Translate(-0.5f, 1.0f, 0.5f));
 	const Materials::Materials middlemat {{0.1f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
-	world.getObjVector().at(3)->SetMaterial(middlemat);
+	world.getObjVector()[3]->SetMaterial(middlemat);
 
 	
 	world.AddObject(new Sphere()); // right [4]
-	world.getObjVector().at(4)->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
+	world.getObjVector()[4]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
 	const Materials::Materials rightmat {{0.5f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
-	world.getObjVector().at(4)->SetMaterial(rightmat);
+	world.getObjVector()[4]->SetMaterial(rightmat);
 
 	world.AddObject(new Sphere()); // left [5]
-	world.getObjVector().at(5)->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
+	world.getObjVector()[5]->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
 	const Materials::Materials leftmat {{1.0f, 0.8f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
-	world.getObjVector().at(5)->SetMaterial(leftmat);
+	world.getObjVector()[5]->SetMaterial(leftmat);
 	
 	// world light
 	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
@@ -166,6 +168,7 @@ int main()
 	//Chapter6();
 
 	Chapter7();
+
 
 	//system("Files\\RAYTRACER.ppm");
 	//Testes();

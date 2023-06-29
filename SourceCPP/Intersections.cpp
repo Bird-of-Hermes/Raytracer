@@ -140,7 +140,7 @@ const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIO
 
 Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector)
 {
-	const size_t md = vector.Size();
+	const size_t md = vector.size();
 	IntersectWorld(world, ray, vector);
 
 #if true

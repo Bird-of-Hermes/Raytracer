@@ -58,23 +58,23 @@ public:
 	World() {}
 	~World() {}
 
-	constexpr void AddObject(Object * obj) { m_ObjVector.emplace_back(obj); }
+	const void AddObject(Object * obj) { m_ObjVector.emplace_newptr(obj); }
 	const void DefaultWorld()
 	{
 		m_Lumini = { Tuple::Point(-10.0f, 10.0f, -10.0f), WHITE }; // world light
 
-		m_ObjVector.emplace_back(new Sphere());
-		m_ObjVector.emplace_back(new Sphere());
+		m_ObjVector.emplace_newptr(new Sphere());
+		m_ObjVector.emplace_newptr(new Sphere());
 
 		static_cast<Sphere*>(m_ObjVector[0])->SetMaterial(Materials::Materials{Color{0.8f, 1.0f, 0.6f}, 0.0f, 0.7f, 0.2f, 0.0f}); // Sphere 0 color
 		static_cast<Sphere*>(m_ObjVector[1])->SetTransform(Scale(0.5f, 0.5f, 0.5f)); // Sphere 1 scale
 	}
 	constexpr void SetLight(const Light & light) { m_Lumini = light;}
 	const Light GetLight() const { return m_Lumini; }
-	constexpr std::vector<Object*> getObjVector() const { return m_ObjVector;}
+	const Utils::Vector<Object*> getObjVector() const { return m_ObjVector;}
 
 private:
-	std::vector<Object*> m_ObjVector;
+	Utils::Vector<Object*> m_ObjVector;
 	Light m_Lumini;
 };
 

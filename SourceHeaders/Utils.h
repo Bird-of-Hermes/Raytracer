@@ -37,7 +37,7 @@ namespace Utils
 			{
 				newAlloc[i] = std::move(m_data[i]);
 			}
-			newAlloc[m_size] = static_cast<T>(ptr); // moves the argument to the last location on the vector
+			newAlloc[m_size] = newAlloc[m_size] = static_cast<T>(ptr); // moves the argument to the last location on the vector
 
 			delete[] m_data; // frees old vector
 			m_data = newAlloc; // pointer to the new address
@@ -71,8 +71,7 @@ namespace Utils
 		operator T* () { return m_data; }
 		T& operator[](const uint32_t index) { return m_data[index]; }
 		constexpr T& operator[](const uint32_t index) const { return m_data[index]; }
-	    constexpr T* at(const uint32_t index) { return &m_data[index]; }
-		constexpr uint32_t Size() const { return m_size; }
+		constexpr uint32_t size() const { return m_size; }
 		constexpr T* begin() const { return m_data; }
 		constexpr T* end() const { return m_data + m_size; }
 		T* begin() { return m_data; }
@@ -80,7 +79,11 @@ namespace Utils
 
 		Vector() { m_size = 0; m_data = nullptr; m_place = 0; }
 		Vector(const uint32_t Size) : m_size(Size) { m_data = new T[Size]; m_place = 0; }
-		~Vector() { delete[] m_data; }
+		~Vector() 
+		{
+			if(m_data == nullptr)
+				delete[] m_data;
+		}
 
 	private:
 		T* m_data;
