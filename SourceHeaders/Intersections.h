@@ -59,13 +59,21 @@ public:
 	bool inside;
 };
 
-
-const INTERSECTIONS ClosestHit(Utils::Vector<INTERSECTIONS>& vector, const uint32_t size);
+template<typename T>
+const INTERSECTIONS ClosestHit(T& vector, const uint32_t size);
 const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
 const void FullIntersection(Object* obj, const Ray& R,Utils::Vector<INTERSECTIONS>& vector);
+const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 12>& vector);
 inline const void IntersectWorld(World* world, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
 {
-	for (size_t i = 0; i < world->getObjVector().size(); i++)
+	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
+	{
+		FullIntersection(world->getObjVector().operator[](i), R, vector);
+	}
+}
+inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array<INTERSECTIONS, 12>& vector)
+{
+	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
 	{
 		FullIntersection(world->getObjVector().operator[](i), R, vector);
 	}
@@ -75,5 +83,7 @@ inline const Color Shade_Hit(World& world, const PRECOMPUTATIONS& pc)
 {
 	return Lighting(static_cast<Sphere*>(pc.inter.m_obj)->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv, false);
 }
-Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
+const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
+const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector);
+
 #endif

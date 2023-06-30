@@ -61,7 +61,6 @@ void Chapter5(int x = 480, int y = 480)
 	std::cout << "Elapsed time: " << duration << " microseconds!" << std::endl;
 	system("Files\\RAYTRACER.ppm");
 }
-
 void Chapter6(int x = 480, int y = 480)
 {
 	Canvas canv(x, y);
@@ -103,7 +102,6 @@ void Chapter6(int x = 480, int y = 480)
 	}
 	canv.ExportAsPPM();
 }
-
 void Chapter7(float x = 480, float y = 480)
 {
 	World world;
@@ -126,7 +124,6 @@ void Chapter7(float x = 480, float y = 480)
 	const Materials::Materials middlemat {{0.1f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.getObjVector()[3]->SetMaterial(middlemat);
 
-	
 	world.AddObject(new Sphere()); // right [4]
 	world.getObjVector()[4]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
 	const Materials::Materials rightmat {{0.5f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
@@ -160,15 +157,13 @@ void Testes()
 int main()
 {
 	//~~~~~~~~~~~~~~~~~~~~~~~~ TIMER ~~~~~~~~~~~~~~~~~~~~~~~~~//
-	const Timer timer;
+	//const Timer timer;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
 	
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-
-	Chapter7();
-
+	Chapter7(1920, 1080);
 
 	//system("Files\\RAYTRACER.ppm");
 	//Testes();

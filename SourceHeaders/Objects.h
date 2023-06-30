@@ -121,16 +121,16 @@ public:
 		m_pixelsize = (m_Arr_halfVWH[1] * 2.0f) / m_hsize;
 	}
 
-	inline const Matrix4x4f GetTransform() const { return m_transform; }
-	inline const float GetWidth() const { return m_hsize; }
-	inline const float GetHeight() const { return m_vsize; }
-	inline const float GetFieldOfView() const { return m_fov; }
-	inline const float GetPixelSize() const { return m_pixelsize; }
-	inline const float* GetHalfsArray() const { return m_Arr_halfVWH; }
-	inline const void SetTransform(const Matrix4x4f& transform) { m_transform = transform; }
-	inline const void SetWidth(float width) { m_hsize = width; }
-	inline const void SetHeight(float height) { m_vsize = height; }
-	inline const void SetFieldOfView(float fov) { m_fov = fov; }
+	const Matrix4x4f GetTransform() const { return m_transform; }
+	constexpr uint32_t GetWidth() const { return static_cast<uint32_t>(m_hsize); }
+	constexpr uint32_t GetHeight() const { return static_cast<uint32_t>(m_vsize); }
+	constexpr float GetFieldOfView() const { return m_fov; }
+	constexpr float GetPixelSize() const { return m_pixelsize; }
+	const float* GetHalfsArray() const { return m_Arr_halfVWH; }
+	const void SetTransform(const Matrix4x4f& transform) { m_transform = transform; }
+	constexpr void SetWidth(float width) { m_hsize = width; }
+	constexpr void SetHeight(float height) { m_vsize = height; }
+	constexpr void SetFieldOfView(float fov) { m_fov = fov; }
 
 private:
 	Matrix4x4f m_transform;

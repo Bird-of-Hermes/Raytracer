@@ -30,7 +30,7 @@ namespace Utils
 		}
 		void emplace_newptr(void* ptr)
 		{
-			T* newAlloc = new T[m_size + 1];
+			T* newAlloc = new T[m_size + 1u];
 
 			// moves old vector to new vector
 			for (size_t i = 0; i < m_size; i++)
@@ -43,7 +43,6 @@ namespace Utils
 			m_data = newAlloc; // pointer to the new address
 			++m_size;
 		}
-
 		constexpr void fill_in(const T&& type)
 		{
 			if (m_place < m_size)
@@ -90,6 +89,42 @@ namespace Utils
 		uint32_t m_size;
 		uint32_t m_place;
 	};
+
+	template<typename T, uint32_t Size>
+	class Static_Array
+	{
+	public:
+		Static_Array() 
+		{
+			for (uint32_t  i = 0; i < Size; i++)
+				m_data[i] = T();
+			
+			m_place = 0;
+		}
+		T* begin() { return m_data; }
+		T* end() { return m_data + Size; }
+		T& operator[](const uint32_t index) { return m_data[index]; }
+		constexpr uint32_t size() const { return Size; }
+		constexpr void fill_in(const T&& type)
+		{
+			if (m_place < Size)
+			{
+				m_data[m_place] = std::move(type);
+				m_place++;
+			}
+			else
+			{
+				std::cerr << "\nfill_in() method is inadequate for this use case. Consider switching to other container other than Utils::Static_Array\n";
+				std::cerr << "m_place = " << m_place << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+
+	private:
+		T m_data[Size];
+		uint32_t m_place;
+	};
+
 }
 inline constexpr unsigned int FastRand(unsigned int index)
 {
