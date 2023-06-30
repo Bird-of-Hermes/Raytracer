@@ -39,7 +39,7 @@ struct PRECOMPUTATIONS
 		eyev(-ray.GetDirection()) 
 	{
 		normalv = static_cast<Sphere*>(intersection.m_obj)->NormalAt(point);
-		const auto z = Tuple::DotProduct(normalv, eyev);
+		const float z = Tuple::DotProduct(normalv, eyev);
 		if (z < 0)
 		{
 			inside = true;
@@ -49,6 +49,7 @@ struct PRECOMPUTATIONS
 		{
 			inside = false;
 		}
+		over_point = point + normalv * ERRORMARGIN;
 	}
 
 public:
@@ -56,15 +57,24 @@ public:
 	Tuple::Pos point;
 	Tuple::Pos eyev;
 	Tuple::Pos normalv;
+	Tuple::Pos over_point;
 	bool inside;
 };
 
 template<typename T>
 const INTERSECTIONS ClosestHit(T& vector, const uint32_t size);
 const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
-const void FullIntersection(Object* obj, const Ray& R,Utils::Vector<INTERSECTIONS>& vector);
+const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIONS>& vector);
+const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 4>& vector);
 const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 12>& vector);
 inline const void IntersectWorld(World* world, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
+{
+	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
+	{
+		FullIntersection(world->getObjVector().operator[](i), R, vector);
+	}
+}
+inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array<INTERSECTIONS, 4>& vector)
 {
 	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
 	{
@@ -79,11 +89,11 @@ inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array
 	}
 }
 inline const void SortIntersections(std::vector<INTERSECTIONS>& vector) { std::sort(vector.begin(), vector.end()); }
+bool IsShadow(World* world, Tuple::Pos point);
 inline const Color Shade_Hit(World& world, const PRECOMPUTATIONS& pc)
 {
-	return Lighting(static_cast<Sphere*>(pc.inter.m_obj)->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv, false);
+	return Lighting(static_cast<Sphere*>(pc.inter.m_obj)->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv, IsShadow(&world, pc.over_point));
 }
 const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
 const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector);
-
 #endif

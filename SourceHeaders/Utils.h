@@ -90,7 +90,7 @@ namespace Utils
 		uint32_t m_place;
 	};
 
-	template<typename T, uint32_t Size>
+	template<typename T, const uint32_t Size>
 	class Static_Array
 	{
 	public:

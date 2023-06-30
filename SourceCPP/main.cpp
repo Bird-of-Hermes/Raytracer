@@ -142,16 +142,21 @@ void Chapter7(float x = 480, float y = 480)
 
 	Render(camera, world);
 }
-void Testes()
+bool Testes(World * world, Tuple::Pos point)
 {
-	const auto eyev{ Vec(0,0,1) };
-	const auto normalv{ Vec(0,0,1) };
-	const Light lightv{ Pt(0,0,-10),{1,1,1} };
-	const bool in_shadow = true;
-	const auto point{ Pt(0,0,0) };
-	const auto m{ DefaultMaterial };
-	const auto result = Lighting(m, lightv, point, eyev, normalv, in_shadow);
-	std::cout << result << std::endl;
+	const Tuple::Pos v = world->GetLight().GetPosition() - point;
+	const float distance = Tuple::Magnitude(v);
+	const Tuple::Pos direction = Tuple::Normalize(v);
+	const Ray r{ point, direction };
+	Utils::Vector<INTERSECTIONS> sai(4);
+	IntersectWorld(world, r, sai);
+	auto f = ClosestHit(sai, world->getObjVector().size());
+	if (f.m_t > 0 && f.m_t < distance)
+	{
+		return true;
+	}
+	else
+		return false;
 }
 
 int main()
@@ -163,7 +168,9 @@ int main()
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-	Chapter7(1920, 1080);
+	Chapter7();
+
+	
 
 	//system("Files\\RAYTRACER.ppm");
 	//Testes();

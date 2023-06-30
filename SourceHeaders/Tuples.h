@@ -1,6 +1,6 @@
 #ifndef TUPLES_H
 #define TUPLES_H
-#define ERRORMARGIN 0.001f
+#define ERRORMARGIN 0.005f
 
 #include <iostream>
 #include <math.h>
