@@ -102,7 +102,7 @@ void Chapter6(int x = 480, int y = 480)
 	}
 	canv.ExportAsPPM();
 }
-void Chapter7(float x = 480, float y = 480)
+void RayTracer(float x = 480, float y = 480)
 {
 	World world;
 
@@ -168,9 +168,7 @@ int main()
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-	Chapter7();
-
-	
+	RayTracer(3840, 2160);
 
 	//system("Files\\RAYTRACER.ppm");
 	//Testes();
