@@ -1,5 +1,0 @@
-﻿  Intersections.cpp
-  main.cpp
-C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\SourceCPP\Intersections.cpp(6,15): warning C4267: 'inicializando': conversão de 'size_t' para 'uint32_t', possível perda de dados
-C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\SourceHeaders\Renderer.h(12,74): warning C4244: 'argumento': conversão de 'float' para 'const uint32_t', possível perda de dados (compilando arquivo de origem SourceCPP\main.cpp)
-  Raytracer.vcxproj -> C:\Users\Euler\Desktop\Meu Raytracer\Raytracer\x64\Debug\Raytracer.exe
