@@ -22,8 +22,10 @@ const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
 
 	if (!static_cast<Sphere*>(obj)->GetTransform().isEqual(IdentityMat4x4f()))
 	{
-		const auto inv = static_cast<Sphere*>(obj)->GetTransform().Invert();
+		const auto inv = obj->GetTransform().Invert();
 		const Ray InverseRay = { inv * R.GetOrigin(), inv * R.GetDirection() };
+		std::cout << InverseRay.GetOrigin() << std::endl;
+		std::cout << InverseRay.GetDirection() << std::endl;
 
 		const auto SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
 		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
@@ -83,12 +85,74 @@ const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
 			vector[z++] = { 0.0f, *obj };
 	}
 }
+
+template <uint32_t Size>
+const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, Size>& vector)
+{
+	if (!obj->GetTransform().isEqual(IdentityMat4x4f()))
+	{
+		const Ray InverseRay = { obj->GetInvTransform() * R.GetOrigin(), obj->GetInvTransform() * R.GetDirection() };
+		
+		if (obj->GetType() == TYPE::PLANE)
+		{
+			if ( abs(InverseRay.GetDirection().m_y) < ERRORMARGIN)
+				return;
+			
+			vector.fill_in({ -InverseRay.GetOrigin().m_y / InverseRay.GetDirection().m_y, *obj });
+				return;
+		}
+
+		const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
+		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
+		const float b = 2.0f * Tuple::DotProduct(InverseRay.GetDirection(), SphereToRay);
+
+		// b²-4ac
+		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
+
+		// if it doesn't intersect
+		if (discriminant < 0)
+			return;
+		
+		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
+		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
+
+		vector.fill_in({ i1, *obj });
+		vector.fill_in({ i2, *obj });
+	}
+	else
+	{
+		if (obj->GetType() == TYPE::PLANE)
+		{
+			if ( abs(R.GetDirection().m_y) < ERRORMARGIN)
+				return;
+		
+			vector.fill_in({ -R.GetOrigin().m_y / R.GetDirection().m_y, *obj });
+			return;
+		}
+
+		const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
+		const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
+		const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
+
+		// b²-4ac
+		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
+
+		// if it doesn't intersect
+		if (discriminant < 0)
+			return;
+		
+		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
+		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
+
+		vector.fill_in({ i1, *obj });
+		vector.fill_in({ i2, *obj });
+	}
+}
 const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
 {
-	if (!static_cast<Sphere*>(obj)->GetTransform().isEqual(IdentityMat4x4f()))
+	if (!obj->GetTransform().isEqual(IdentityMat4x4f()))
 	{
-		const Matrix4x4f inv = static_cast<Sphere*>(obj)->GetTransform().Invert();
-		const Ray InverseRay = { inv * R.GetOrigin(), inv * R.GetDirection() };
+		const Ray InverseRay = { obj->GetInvTransform() * R.GetOrigin(), obj->GetInvTransform() * R.GetDirection() };
 
 		const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
 		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
@@ -135,122 +199,18 @@ const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIO
 		vector.fill_in({ i2, *obj });
 	}
 }
-const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 4>& vector)
-{
-	if (!static_cast<Sphere*>(obj)->GetTransform().isEqual(IdentityMat4x4f()))
-	{
-		const Matrix4x4f inv = static_cast<Sphere*>(obj)->GetTransform().Invert();
-		const Ray InverseRay = { inv * R.GetOrigin(), inv * R.GetDirection() };
-
-		const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(InverseRay.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-		{
-			vector.fill_in({ 0.0f, *obj });
-			vector.fill_in({ 0.0f, *obj });
-			return;
-		}
-
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-	else
-	{
-		const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-		{
-			vector.fill_in({ 0.0f, *obj });
-			vector.fill_in({ 0.0f, *obj });
-			return;
-		}
-
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-}
-const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 12>& vector)
-{
-	if (!static_cast<Sphere*>(obj)->GetTransform().isEqual(IdentityMat4x4f()))
-	{
-		const Matrix4x4f inv = static_cast<Sphere*>(obj)->GetTransform().Invert();
-		const Ray InverseRay = { inv * R.GetOrigin(), inv * R.GetDirection() };
-
-		const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(InverseRay.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-		{
-			vector.fill_in({ 0.0f, *obj });
-			vector.fill_in({ 0.0f, *obj });
-			return;
-		}
-
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-	else
-	{
-		const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-		{
-			vector.fill_in({ 0.0f, *obj });
-			vector.fill_in({ 0.0f, *obj });
-			return;
-		}
-
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-}
-const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector)
+const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector)
 {
 	IntersectWorld(world, ray, vector);
 
 	const INTERSECTIONS f = ClosestHit(vector, world->getObjVector().size());
 
-	if (f.m_t > 0)
+	if (f.m_t > 0.0f )
 		return Shade_Hit(*world, { ray, f });
 	else
-		return GRAY;
+		return BLACK;
 }
-const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector)
+const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector)
 {
 	IntersectWorld(world, ray, vector);
 

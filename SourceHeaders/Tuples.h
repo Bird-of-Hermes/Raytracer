@@ -35,7 +35,7 @@ namespace Tuple
 		inline Pos operator-(const Pos& b) const{ return { this->m_x - b.m_x, this->m_y - b.m_y, this->m_z - b.m_z, abs(this->m_type - b.m_type) }; }
 		inline Pos operator-() const { return { -m_x, -m_y, -m_z }; }
 		inline Pos operator*(const Pos& b) const { return { this->m_x * b.m_x, this->m_y * b.m_y, this->m_z * b.m_z, abs(this->m_type * b.m_type) }; }
-		inline Pos operator*(float b)	const { return { this->m_x * b, this->m_y * b, this->m_z * b }; }
+		inline Pos operator*(float b) const { return { this->m_x * b, this->m_y * b, this->m_z * b }; }
 		friend std::ostream& operator<<(std::ostream& os, const Pos& pos) 
 		{
 			if(pos.m_type == 0)
@@ -93,6 +93,7 @@ struct Color
 #define YELLOW Color{1.0f, 1.0f, 0.0f}
 #define CYAN Color{0.0f, 1.0f, 1.0f}
 #define GRAY Color{0.5f, 0.5f, 0.5f}
+#define BROWN Color{0.5882f, 0.2941f, 0.0f}
 
 // Tertiary
 #define ORANGE Color{1.0f, 0.647f, 0.0f}
@@ -101,4 +102,9 @@ struct Color
 #define PURPLEBLUE Color{0.541f, 0.169f, 0.882f}
 #define TOMATORED Color{1.0f, 0.388f, 0.278f}
 
+// Specifics
+#define ROYALBLUE Color{0.0f,0.0f, 0.9822f}
+#define PINK Color{1.0f, 0.7961f, 0.8588f}
+#define TURQUOISE Color{0.251f, 0.8784f, 0.8157f}
+#define GOLD Color{1.0f, 0.8431f, 0.0f}
 #endif

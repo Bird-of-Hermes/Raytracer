@@ -20,7 +20,7 @@ struct INTERSECTIONS
 	}
 	friend std::ostream& operator<<(std::ostream& os, const INTERSECTIONS& inters)
 	{
-		os << "Sphere ID = " << inters.m_obj->GetId() << ",\t";
+		os << "Object ID = " << inters.m_obj->GetId() << ",\t";
 		os << "intersected at t = " << inters.m_t << '.' << std::endl;
 
 		return os;
@@ -38,7 +38,7 @@ struct PRECOMPUTATIONS
 		point(ray.Position(intersection.m_t)), 
 		eyev(-ray.GetDirection()) 
 	{
-		normalv = static_cast<Sphere*>(intersection.m_obj)->NormalAt(point);
+		normalv = NormalAt(intersection.m_obj, point);
 		const float z = Tuple::DotProduct(normalv, eyev);
 		if (z < 0)
 		{
@@ -64,24 +64,18 @@ public:
 template<typename T>
 const INTERSECTIONS ClosestHit(T& vector, const uint32_t size);
 const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
+template <uint32_t Size>
+const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, Size>& vector);
 const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIONS>& vector);
-const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 4>& vector);
-const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, 12>& vector);
+template <uint32_t Size>
+inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array<INTERSECTIONS, Size>& vector)
+{
+	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
+	{
+		FullIntersection(world->getObjVector().operator[](i), R, vector);
+	}
+}
 inline const void IntersectWorld(World* world, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
-{
-	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
-	{
-		FullIntersection(world->getObjVector().operator[](i), R, vector);
-	}
-}
-inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array<INTERSECTIONS, 4>& vector)
-{
-	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
-	{
-		FullIntersection(world->getObjVector().operator[](i), R, vector);
-	}
-}
-inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array<INTERSECTIONS, 12>& vector)
 {
 	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
 	{
@@ -92,8 +86,8 @@ inline const void SortIntersections(std::vector<INTERSECTIONS>& vector) { std::s
 bool IsShadow(World* world, Tuple::Pos point);
 inline const Color Shade_Hit(World& world, const PRECOMPUTATIONS& pc)
 {
-	return Lighting(static_cast<Sphere*>(pc.inter.m_obj)->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv, IsShadow(&world, pc.over_point));
+	return Lighting(pc.inter.m_obj->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv, IsShadow(&world, pc.over_point));
 }
-const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
 const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector);
+const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
 #endif

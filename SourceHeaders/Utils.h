@@ -18,7 +18,7 @@ namespace Utils
 			T* newAlloc = new T[m_size + 1];
 
 			// moves old vector to new vector
-			for (size_t i = 0; i < m_size; i++)
+			for (uint32_t i = 0; i < m_size; i++)
 			{
 				newAlloc[i] = std::move(m_data[i]);
 			}
@@ -33,7 +33,7 @@ namespace Utils
 			T* newAlloc = new T[m_size + 1u];
 
 			// moves old vector to new vector
-			for (size_t i = 0; i < m_size; i++)
+			for (uint32_t i = 0; i < m_size; i++)
 			{
 				newAlloc[i] = std::move(m_data[i]);
 			}

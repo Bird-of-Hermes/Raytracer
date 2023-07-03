@@ -471,7 +471,14 @@ inline const float Determinant4x4(Matrix4x4f & matrix)
 									   matrix[8],  matrix[9],  matrix[10],
 									   matrix[12], matrix[13], matrix[14]);
 }
-inline const float toRadians(float degrees) { return degrees * 0.0174533f; }
+inline constexpr float toRadians(float degrees) { return degrees * 0.0174533f; }
+
+struct matTransform
+{
+	matTransform(Matrix4x4f&& a) { m_transform = std::move(a); }
+	Matrix4x4f m_transform;
+	bool m_isTranslate;
+};
 
 // Matrix Transforms
 
@@ -543,23 +550,6 @@ inline const Matrix4x4f RotateZaxis(float angle)
 		sin(toRadians(angle)), cos(toRadians(angle)), 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
-	};
-}
-inline const Matrix4x4f RotateXYZ(float angleX, float angleY, float angleZ)
-{
-	const float cosX = cos(toRadians(angleX));
-	const float sinX = sin(toRadians(angleX));
-	const float cosY = cos(toRadians(angleY));
-	const float sinY = sin(toRadians(angleY));
-	const float cosZ = cos(toRadians(angleZ));
-	const float sinZ = sin(toRadians(angleZ));
-
-	return
-	{
-		cosY * cosZ,                        -cosY * sinZ,                       sinY,         0.0f,
-		sinX * sinY * cosZ + cosX * sinZ,    -sinX * sinY * sinZ + cosX * cosZ,   -sinX * cosY,  0.0f,
-		-cosX * sinY * cosZ + sinX * sinZ,   cosX * sinY * sinZ + sinX * cosZ,    cosX * cosY,   0.0f,
-		0.0f,                                0.0f,                                0.0f,         1.0f
 	};
 }
 inline const Matrix4x4f Shear(float xy, float xz, float yx, float yz, float zx, float zy)

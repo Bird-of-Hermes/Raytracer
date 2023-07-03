@@ -7,19 +7,25 @@
 #include <vector>
 #include <algorithm>
 
+enum class TYPE : uint32_t{SPHERE = 0, PLANE};
+
 class Object
 {
 public:
 	Object() = default;
 	virtual ~Object() {}
+	virtual const Matrix4x4f GetInvTransform() const = 0;
+	virtual const Matrix4x4f GetTransform() const = 0;
+	virtual const Materials::Materials GetMaterial() const = 0;
 	virtual void SetTransform(const Matrix4x4f& t) = 0;
 	virtual const void SetMaterial(const Materials::Materials& material) = 0;
-	virtual const uint64_t GetId() = 0;
+	virtual const uint32_t GetId() const = 0;
+	virtual const TYPE GetType() const = 0;
 
 protected:
-	static uint64_t GenerateId()
+	static uint32_t GenerateId()
 	{
-		static uint64_t s_Id = 0;
+		static uint32_t s_Id = 0;
 		return s_Id++;
 	}
 };
@@ -29,26 +35,43 @@ class Sphere : public Object
 public:
 	Sphere() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
 	Sphere(const Materials::Materials& mat) { m_Id = GenerateId(); m_transform = IdentityMat4x4f(); m_MaterialType = mat; }
+	~Sphere() {}
 
-	void SetTransform(const Matrix4x4f& t) override { m_transform = t; }
+	void SetTransform(const Matrix4x4f& t) override { m_transform = t; m_InverseTransform = m_transform.Invert(); }
 	const void SetMaterial(const Materials::Materials& material) { m_MaterialType = material; }
-	inline const Materials::Materials GetMaterial() const { return m_MaterialType; }
+	Materials::Materials RETURNRAWMATERIAL() { return m_MaterialType; }
+	const Materials::Materials GetMaterial() const { return m_MaterialType; }
+	const Matrix4x4f GetInvTransform() const { return m_InverseTransform; }
 	const Matrix4x4f GetTransform() const { return m_transform; }
-	const uint64_t GetId() override { return m_Id; }
-	const Tuple::Pos NormalAt(Tuple::Pos point) const
-	{
-		const Matrix4x4f x{ m_transform.Invert() };
-		const Tuple::Pos object_point{ x * point };
-		const Tuple::Pos object_normal { object_point - Tuple::Point(0, 0, 0)};
-
-		Tuple::Pos world_normal { x.Transposed() * object_normal};
-		world_normal.m_type = 0;
-		return Normalize(world_normal);
-	}
+	const uint32_t GetId() const override { return m_Id; }
+	const TYPE GetType() const override { return TYPE::SPHERE; }
 
 private:
 	Matrix4x4f m_transform;
-	uint64_t m_Id;
+	Matrix4x4f m_InverseTransform;
+	uint32_t m_Id;
+	Materials::Materials m_MaterialType;
+};
+
+class Plane : public Object
+{
+public:
+	Plane() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
+	Plane(const Materials::Materials& mat) { m_Id = GenerateId(); m_transform = IdentityMat4x4f(); m_MaterialType = mat; }
+	~Plane() {}
+
+	void SetTransform(const Matrix4x4f& t) override { m_transform = t; }
+	const void SetMaterial(const Materials::Materials& material) { m_MaterialType = material; }
+	const Materials::Materials GetMaterial() const { return m_MaterialType; }
+	const Matrix4x4f GetInvTransform() const { return m_InvTransform; }
+	const Matrix4x4f GetTransform() const { return m_transform; }
+	const uint32_t GetId() const override { return m_Id; }
+	const TYPE GetType() const override { return TYPE::PLANE; }
+
+private:
+	Matrix4x4f m_transform;
+	Matrix4x4f m_InvTransform;
+	uint32_t m_Id;
 	Materials::Materials m_MaterialType;
 };
 
@@ -140,5 +163,32 @@ private:
 	float m_pixelsize;
 	float m_Arr_halfVWH[3];
 };
+
+inline const Tuple::Pos NormalAt(Object* obj, Tuple::Pos point)
+{
+	if (obj->GetType() == TYPE::PLANE)
+	{
+		return Tuple::Vector(0, 1, 0);
+	}
+// if it's a translation transform, just return the xyz vector
+//	if ((x[3] != 0 || x[7] != 0 || x[11] != 0) && obj->GetType() == TYPE::PLANE)
+//		return Tuple::Pos(x[3], x[7], x[11]);
+	else
+	{		
+		const Tuple::Pos object_point { obj->GetInvTransform() * point };
+		const Tuple::Pos object_normal { object_point - Tuple::Point(0, 0, 0)};
+
+		Tuple::Pos world_normal { obj->GetInvTransform().Transposed() * object_normal};
+		world_normal.m_type = 0;
+		return Normalize(world_normal);
+	}
+};
+
+inline const Color StripeAtObject(Object* obj, PATTERNS pattern, Tuple::Pos worldpoint)
+{
+	const Tuple::Pos objpoint {obj->GetInvTransform() * worldpoint};
+	const Tuple::Pos patpoint {pattern.GetTransform().Invert() * objpoint};
+	return pattern.StripeAt(patpoint);
+}
 
 #endif

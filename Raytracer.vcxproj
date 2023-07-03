@@ -148,12 +148,16 @@
     <ClInclude Include="SourceHeaders\Materials.h" />
     <ClInclude Include="SourceHeaders\Matrixes.h" />
     <ClInclude Include="SourceHeaders\Objects.h" />
+    <ClInclude Include="SourceHeaders\Patterns.h" />
     <ClInclude Include="SourceHeaders\Projectile.h" />
     <ClInclude Include="SourceHeaders\Ray.h" />
     <ClInclude Include="SourceHeaders\Renderer.h" />
     <ClInclude Include="SourceHeaders\Timer.h" />
     <ClInclude Include="SourceHeaders\Tuples.h" />
     <ClInclude Include="SourceHeaders\Utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,17 +7,24 @@
 #include "../SourceHeaders/Intersections.h"
 #include "../SourceHeaders/Timer.h"
 #include "../SourceHeaders/Renderer.h"
+#include "../SourceHeaders/Patterns.h"
 #include <algorithm>
 #include <memory>
 #include <cmath>
 #define Pt Tuple::Point
 #define Vec Tuple::Vector
 
+#define SD 720.0f, 480.0f
+#define HD 1280.0f, 720.0f
+#define FULLHD 1920.0f, 1080.0f
+#define UHD 3840.0f, 2160.0f
+#define MAXHD 7680.0f, 4320.0f
+#define PI 180.0f
+
 void Chapter5(int x = 480, int y = 480)
 {
 	const auto start = std::chrono::high_resolution_clock::now();
 	
-	//INTERSECTIONS* vector = new INTERSECTIONS[static_cast<size_t>(x * y) + 1ull]; // intellisense warnings. . .
 	Utils::Vector<INTERSECTIONS> vector(static_cast<size_t>(x * y)+1ull);
 	Sphere s;
 
@@ -64,7 +71,6 @@ void Chapter5(int x = 480, int y = 480)
 void Chapter6(int x = 480, int y = 480)
 {
 	Canvas canv(x, y);
-	//INTERSECTIONS* vector = new INTERSECTIONS[(x * y) + 1]; // +1 because intellisense is annoying
 	Utils::Vector<INTERSECTIONS> vector((x * y) + 1);
 
 	const Light light{ Tuple::Point(-10.0f, 10.0f, -10.0f), WHITE };
@@ -95,19 +101,19 @@ void Chapter6(int x = 480, int y = 480)
 			Intersect(&s, r, vector);
 			const float t = vector[static_cast<size_t>(i * canv.Height() + j)].m_t;
 			if (t > 0)
-				canv.WritePixel(i, j, Lighting(s.GetMaterial(), light, r.Position(t), -r.GetDirection(), s.NormalAt(r.Position(t)), false));
+				canv.WritePixel(i, j, Lighting(s.GetMaterial(), light, r.Position(t), -r.GetDirection(), NormalAt(&s, r.Position(t)), false));
 			else
 				canv.WritePixel(i, j, BLACK);
 		}
 	}
 	canv.ExportAsPPM();
 }
-void RayTracer(float x = 480, float y = 480)
+void Chapter7(float x = 720, float y = 480)
 {
 	World world;
 
+	const Materials::Materials mat {{(PINK+TURQUOISE)/4.0f}, 0.1f, 0.9f, 0.05f, 100.0f}; // floor/wall material
 	world.AddObject(new Sphere()); // floor [0]
-	const Materials::Materials mat {{0.5f, 0.5f, 0.5f}, 0.1f, 0.9f, 0.0f, 100.0f}; // floor/wall material
 	world.getObjVector()[0]->SetTransform(Scale(10.0f, 0.01f, 10.0f));
 	world.getObjVector()[0]->SetMaterial(mat);
 	
@@ -119,19 +125,19 @@ void RayTracer(float x = 480, float y = 480)
 	world.getObjVector()[2]->SetTransform(Translate(0, 0, 5) * RotateYaxis(45.0f) * RotateXaxis(90.0f) * Scale(10.0f, 0.01f, 10.0f));
 	world.getObjVector()[2]->SetMaterial(mat);
 
+	const Materials::Materials middlemat {{TOMATORED}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.AddObject(new Sphere()); // middle [3]
 	world.getObjVector()[3]->SetTransform(Translate(-0.5f, 1.0f, 0.5f));
-	const Materials::Materials middlemat {{0.1f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.getObjVector()[3]->SetMaterial(middlemat);
 
+	const Materials::Materials rightmat {{0.125f, 0.125f, 0.125f}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
 	world.AddObject(new Sphere()); // right [4]
 	world.getObjVector()[4]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
-	const Materials::Materials rightmat {{0.5f, 1.0f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
-	world.getObjVector()[4]->SetMaterial(rightmat);
+	world.getObjVector()[4]->SetMaterial(PETROLEUM);
 
+	const Materials::Materials leftmat {{CYAN}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.AddObject(new Sphere()); // left [5]
 	world.getObjVector()[5]->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
-	const Materials::Materials leftmat {{1.0f, 0.8f, 0.1f}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.getObjVector()[5]->SetMaterial(leftmat);
 	
 	// world light
@@ -142,21 +148,77 @@ void RayTracer(float x = 480, float y = 480)
 
 	Render(camera, world);
 }
-bool Testes(World * world, Tuple::Pos point)
+void Chapter9(float x = 720, float y = 480)
 {
-	const Tuple::Pos v = world->GetLight().GetPosition() - point;
-	const float distance = Tuple::Magnitude(v);
-	const Tuple::Pos direction = Tuple::Normalize(v);
-	const Ray r{ point, direction };
-	Utils::Vector<INTERSECTIONS> sai(4);
-	IntersectWorld(world, r, sai);
-	auto f = ClosestHit(sai, world->getObjVector().size());
-	if (f.m_t > 0 && f.m_t < distance)
-	{
-		return true;
-	}
-	else
-		return false;
+	World world;
+
+	const Materials::Materials middlemat {{TOMATORED}, 0.1f, 0.7f, 0.3f, 100.0f};
+	world.AddObject(new Sphere()); // middle sphere [0]
+	world.getObjVector()[0]->SetTransform(Translate(-0.5f, 1.0f, 0.5f));
+	world.getObjVector()[0]->SetMaterial(middlemat);
+
+	const Materials::Materials rightmat {{0.125f, 0.125f, 0.125f}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
+	world.AddObject(new Sphere()); // right sphere [1]
+	world.getObjVector()[1]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
+	world.getObjVector()[1]->SetMaterial(PETROLEUM);
+
+	const Materials::Materials leftmat {{ORANGE}, 0.1f, 0.7f, 0.3f, 100.0f};
+	world.AddObject(new Sphere()); // left sphere [2]
+	world.getObjVector()[2]->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
+	world.getObjVector()[2]->SetMaterial(leftmat);
+
+	//(TURQUOISE) / 2.0f + WHITE
+	const Materials::Materials mat {{(TURQUOISE) / 2.0f + WHITE}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor/wall material
+	world.AddObject(new Plane()); // floor [3]
+	world.getObjVector()[3]->SetMaterial(mat);
+
+	// world light
+	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
+
+	Camera camera{ x, y, 96.3f };
+	camera.SetTransform(ViewTransform(Pt(0, 3.0f, -4.0f), Pt(0, 1, 0), Vec(0, 1, 0)));
+
+	Render(camera, world);
+}
+void Chapter10(float x = 720, float y = 480)
+{
+	World world;
+
+	const Materials::Materials middlemat {{TOMATORED}, 0.1f, 0.7f, 0.3f, 100.0f};
+	world.AddObject(new Sphere()); // middle sphere [0]
+	world.getObjVector()[0]->SetTransform(Translate(-0.5f, 1.0f, 0.5f));
+	world.getObjVector()[0]->SetMaterial(middlemat);
+
+	const Materials::Materials rightmat {{0.125f, 0.125f, 0.125f}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
+	world.AddObject(new Sphere()); // right sphere [1]
+	world.getObjVector()[1]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
+	world.getObjVector()[1]->SetMaterial(PETROLEUM);
+
+	const Materials::Materials leftmat {{ORANGE}, 0.1f, 0.7f, 0.3f, 100.0f};
+	world.AddObject(new Sphere()); // left sphere [2]
+	world.getObjVector()[2]->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
+	world.getObjVector()[2]->SetMaterial(leftmat);
+
+	//(TURQUOISE) / 2.0f + WHITE
+	const Materials::Materials mat {{(TURQUOISE) / 2.0f + WHITE, VIOLET*GRAY}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor/wall material
+	world.AddObject(new Plane()); // floor [3]
+	world.getObjVector()[3]->SetMaterial(mat);
+
+	// world light
+	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
+
+	Camera camera{ x, y, 96.3f };
+	camera.SetTransform(ViewTransform(Pt(0, 3.0f, -4.0f), Pt(0, 1, 0), Vec(0, 1, 0)));
+
+	Render(camera, world);
+}
+void Teste()
+{
+	Sphere s;
+	s.SetTransform(Scale(2, 2, 2));
+	PATTERNS f;
+	f.SetTransform(Translate(0.5f,0,0));
+	std::cout << StripeAtObject(&s, f, Pt(2.5f, 0, 0));
 }
 
 int main()
@@ -164,14 +226,22 @@ int main()
 	//~~~~~~~~~~~~~~~~~~~~~~~~ TIMER ~~~~~~~~~~~~~~~~~~~~~~~~~//
 	//const Timer timer;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
+	// ~~~~~~~~~~ SD(720p, 480) ~~ HD(1280p, 720) ~~ FULLHD(1920p, 1080) ~~ UHD(3840p, 2160) ~~ MAXHD(7680p, 4320) ~~~~~~~~~~~~~~ //
 	
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-	RayTracer(3840, 2160);
+	Chapter7(MAXHD); // ~4.5s @ MAXHD without inv.transform in memory // 1.9s w/
+	//Chapter9(FULLHD);
+	//Chapter10(MAXHD);
+
+	
+	//Teste();
+	//PATTERNS patern;
+	//std::cout << patern.StripeAt(Pt(0.0f,0,0));
+
 
 	//system("Files\\RAYTRACER.ppm");
-	//Testes();
 
 	return 0;
 }

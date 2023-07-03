@@ -29,7 +29,6 @@ inline const void Render(Camera& cam, World& world)
 				{
 					Utils::Static_Array<INTERSECTIONS, 12> inters;
 					const Ray r{ RayForPixel(cam, x, y) };
-					//IsShadow(&world, r.GetOrigin());
 					const Color cor{ ColorAt(&world, r, inters) };
 					img.WritePixel(y, x, cor);
 				});

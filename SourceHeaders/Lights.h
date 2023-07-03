@@ -1,6 +1,7 @@
 #ifndef LIGHTS_H
 #define LIGHTS_H
 #include "Tuples.h"
+#include "Patterns.h"
 #include "Materials.h"
 #include <cmath>
 
@@ -20,11 +21,16 @@ private:
 	Color m_Intensity;
 };
 
-inline const Color Lighting(Materials::Materials mat, Light light, Tuple::Pos point, Tuple::Pos eyev, Tuple::Pos normalv, bool is_shadow)
+inline const Color Lighting(const Materials::Materials& mat, Light light, Tuple::Pos point, Tuple::Pos eyev, Tuple::Pos normalv, bool is_shadow)
 {
 	Color diffuse, specular;
+	Color effective_color;
 
-	const Color effective_color = mat.m_Color * light.GetIntensity();
+	if (mat.m_haspattern == true)
+		effective_color = mat.m_pattern.StripeAt(point) * light.GetIntensity();
+	
+	effective_color = mat.m_Color * light.GetIntensity();
+
 	const Color ambient = effective_color * mat.m_Ambient;
 	if (is_shadow)
 	{
