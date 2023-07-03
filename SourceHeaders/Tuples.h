@@ -103,8 +103,9 @@ struct Color
 #define TOMATORED Color{1.0f, 0.388f, 0.278f}
 
 // Specifics
-#define ROYALBLUE Color{0.0f,0.0f, 0.9822f}
+#define ROYALBLUE Color{0.0f, 0.0f, 0.9822f}
 #define PINK Color{1.0f, 0.7961f, 0.8588f}
 #define TURQUOISE Color{0.251f, 0.8784f, 0.8157f}
 #define GOLD Color{1.0f, 0.8431f, 0.0f}
+#define SILVER Color{0.7529f, 0.7529f, 0.7529f}
 #endif

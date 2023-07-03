@@ -16,7 +16,7 @@ public:
 	virtual ~Object() {}
 	virtual const Matrix4x4f GetInvTransform() const = 0;
 	virtual const Matrix4x4f GetTransform() const = 0;
-	virtual const Materials::Materials GetMaterial() const = 0;
+	virtual Materials::Materials* GetMaterial() = 0;
 	virtual void SetTransform(const Matrix4x4f& t) = 0;
 	virtual const void SetMaterial(const Materials::Materials& material) = 0;
 	virtual const uint32_t GetId() const = 0;
@@ -33,22 +33,21 @@ protected:
 class Sphere : public Object
 {
 public:
-	Sphere() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
+	Sphere() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_InvTransform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
 	Sphere(const Materials::Materials& mat) { m_Id = GenerateId(); m_transform = IdentityMat4x4f(); m_MaterialType = mat; }
 	~Sphere() {}
 
-	void SetTransform(const Matrix4x4f& t) override { m_transform = t; m_InverseTransform = m_transform.Invert(); }
+	void SetTransform(const Matrix4x4f& t) override { m_transform = t; m_InvTransform = m_transform.Invert(); }
 	const void SetMaterial(const Materials::Materials& material) { m_MaterialType = material; }
-	Materials::Materials RETURNRAWMATERIAL() { return m_MaterialType; }
-	const Materials::Materials GetMaterial() const { return m_MaterialType; }
-	const Matrix4x4f GetInvTransform() const { return m_InverseTransform; }
+	Materials::Materials* GetMaterial() { return &m_MaterialType; }
+	const Matrix4x4f GetInvTransform() const { return m_InvTransform; }
 	const Matrix4x4f GetTransform() const { return m_transform; }
 	const uint32_t GetId() const override { return m_Id; }
 	const TYPE GetType() const override { return TYPE::SPHERE; }
 
 private:
 	Matrix4x4f m_transform;
-	Matrix4x4f m_InverseTransform;
+	Matrix4x4f m_InvTransform;
 	uint32_t m_Id;
 	Materials::Materials m_MaterialType;
 };
@@ -56,13 +55,13 @@ private:
 class Plane : public Object
 {
 public:
-	Plane() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
+	Plane() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_InvTransform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
 	Plane(const Materials::Materials& mat) { m_Id = GenerateId(); m_transform = IdentityMat4x4f(); m_MaterialType = mat; }
 	~Plane() {}
 
-	void SetTransform(const Matrix4x4f& t) override { m_transform = t; }
+	void SetTransform(const Matrix4x4f& t) override { m_transform = t; m_InvTransform = m_transform.Invert();}
 	const void SetMaterial(const Materials::Materials& material) { m_MaterialType = material; }
-	const Materials::Materials GetMaterial() const { return m_MaterialType; }
+	Materials::Materials* GetMaterial() { return &m_MaterialType; }
 	const Matrix4x4f GetInvTransform() const { return m_InvTransform; }
 	const Matrix4x4f GetTransform() const { return m_transform; }
 	const uint32_t GetId() const override { return m_Id; }
@@ -187,7 +186,7 @@ inline const Tuple::Pos NormalAt(Object* obj, Tuple::Pos point)
 inline const Color StripeAtObject(Object* obj, PATTERNS pattern, Tuple::Pos worldpoint)
 {
 	const Tuple::Pos objpoint {obj->GetInvTransform() * worldpoint};
-	const Tuple::Pos patpoint {pattern.GetTransform().Invert() * objpoint};
+	const Tuple::Pos patpoint {pattern.GetInvTransform() * objpoint};
 	return pattern.StripeAt(patpoint);
 }
 

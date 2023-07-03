@@ -68,46 +68,6 @@ void Chapter5(int x = 480, int y = 480)
 	std::cout << "Elapsed time: " << duration << " microseconds!" << std::endl;
 	system("Files\\RAYTRACER.ppm");
 }
-void Chapter6(int x = 480, int y = 480)
-{
-	Canvas canv(x, y);
-	Utils::Vector<INTERSECTIONS> vector((x * y) + 1);
-
-	const Light light{ Tuple::Point(-10.0f, 10.0f, -10.0f), WHITE };
-	Sphere s;
-	s.SetMaterial({ RED, 0.1f, 0.9f, 0.9f, 75.0f });
-
-	const auto ray_origin{ Tuple::Point(0,0,-5) };
-	const int wall_z = 10;
-	const int wall_size = 7;
-
-	const float pixel_sizeHeight = static_cast<float>(wall_size) / static_cast<float>(canv.Height());
-	const float pixel_sizeWidth = static_cast<float>(wall_size) / static_cast<float>(canv.Width());
-	const float halfHeight = pixel_sizeHeight * 0.5f;
-	const float halfWidth = pixel_sizeWidth * 0.5f;
-
-	const auto mat = Translate(3.0f, -3.0f, 8.0f);
-	s.SetTransform(mat);
-
-	// Intersect ray with sphere
-	for (int32_t i = 0; i < canv.Height(); i++)
-	{
-		const float worldy = halfHeight - pixel_sizeHeight * static_cast<float>(i);
-		for (int32_t j = 0; j < canv.Width(); j++)
-		{
-			const float worldx = -halfWidth + pixel_sizeWidth * static_cast<float>(j);
-			const Tuple::Pos position = Tuple::Point(worldx, worldy, static_cast<float>(wall_z));
-			const Ray r{ ray_origin, Tuple::Normalize(position - ray_origin) };
-			Intersect(&s, r, vector);
-			const float t = vector[static_cast<size_t>(i * canv.Height() + j)].m_t;
-			if (t > 0)
-				canv.WritePixel(i, j, Lighting(s.GetMaterial(), light, r.Position(t), -r.GetDirection(), NormalAt(&s, r.Position(t)), false));
-			else
-				canv.WritePixel(i, j, BLACK);
-		}
-	}
-	canv.ExportAsPPM();
-}
 void Chapter7(float x = 720, float y = 480)
 {
 	World world;
@@ -184,10 +144,13 @@ void Chapter10(float x = 720, float y = 480)
 {
 	World world;
 
-	const Materials::Materials middlemat {{TOMATORED}, 0.1f, 0.7f, 0.3f, 100.0f};
+	const Materials::Materials middlemat {{ROYALBLUE, VIOLET}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.AddObject(new Sphere()); // middle sphere [0]
-	world.getObjVector()[0]->SetTransform(Translate(-0.5f, 1.0f, 0.5f));
+	world.getObjVector()[0]->SetTransform(Translate(-0.45f, 1.0f, 0.5f));
 	world.getObjVector()[0]->SetMaterial(middlemat);
+	world.getObjVector()[0]->GetMaterial()->EnablePattern();
+	const auto ptransform1 = Translate(1.5f, 1.5f, 1.5f) * Scale(0.25f, 0.25f, 0.25f);
+	world.getObjVector()[0]->GetMaterial()->m_pattern.SetTransform(ptransform1);
 
 	const Materials::Materials rightmat {{0.125f, 0.125f, 0.125f}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
 	world.AddObject(new Sphere()); // right sphere [1]
@@ -200,9 +163,11 @@ void Chapter10(float x = 720, float y = 480)
 	world.getObjVector()[2]->SetMaterial(leftmat);
 
 	//(TURQUOISE) / 2.0f + WHITE
-	const Materials::Materials mat {{(TURQUOISE) / 2.0f + WHITE, VIOLET*GRAY}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor/wall material
+	const Materials::Materials mat {{SILVER, WHITE}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor/wall material
 	world.AddObject(new Plane()); // floor [3]
 	world.getObjVector()[3]->SetMaterial(mat);
+	const auto ptransform = RotateYaxis(90.0f) * Scale(0.1f, 0.1f, 0.1f);
+	world.getObjVector()[3]->GetMaterial()->m_pattern.SetTransform(ptransform);
 
 	// world light
 	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
@@ -216,6 +181,7 @@ void Teste()
 {
 	Sphere s;
 	s.SetTransform(Scale(2, 2, 2));
+	s.GetMaterial()->EnablePattern();
 	PATTERNS f;
 	f.SetTransform(Translate(0.5f,0,0));
 	std::cout << StripeAtObject(&s, f, Pt(2.5f, 0, 0));
@@ -231,16 +197,11 @@ int main()
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-	Chapter7(MAXHD); // ~4.5s @ MAXHD without inv.transform in memory // 1.9s w/
+	//Chapter7(MAXHD); // ~4.5s @ MAXHD without inv.transform in memory + cached // 1.9s cached @ same
 	//Chapter9(FULLHD);
-	//Chapter10(MAXHD);
-
-	
+	Chapter10(MAXHD); // 1.274s
 	//Teste();
-	//PATTERNS patern;
-	//std::cout << patern.StripeAt(Pt(0.0f,0,0));
-
-
+	
 	//system("Files\\RAYTRACER.ppm");
 
 	return 0;

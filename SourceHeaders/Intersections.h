@@ -61,6 +61,42 @@ public:
 	bool inside;
 };
 
+inline const Color Lighting(const PRECOMPUTATIONS& pc, Light light, bool is_shadow)
+{
+	Color diffuse, specular;
+	Color effective_color;
+
+	
+	if (pc.inter.m_obj->GetMaterial()->m_haspattern == true)
+	{
+		effective_color = StripeAtObject(pc.inter.m_obj, pc.inter.m_obj->GetMaterial()->m_pattern, pc.point);
+	}
+	else
+	{
+		effective_color = pc.inter.m_obj->GetMaterial()->m_Color * light.GetIntensity();
+	}
+	const Color ambient = effective_color * pc.inter.m_obj->GetMaterial()->m_Ambient;
+	if (is_shadow)
+	{
+		return ambient;
+	}
+	const Tuple::Pos lightv = Normalize(light.GetPosition() - pc.point);
+	const float light_dot_normal = Tuple::DotProduct(lightv, pc.normalv);
+
+	if (light_dot_normal >= 0)
+	{
+		diffuse = effective_color * pc.inter.m_obj->GetMaterial()->m_Diffuse * light_dot_normal;
+		const Tuple::Pos reflectv = Tuple::Reflect(-lightv, pc.normalv);
+		const float reflect_dot_eye = Tuple::DotProduct(reflectv, pc.eyev);
+
+		if (reflect_dot_eye > 0)
+		{
+			const float factor = std::powf(reflect_dot_eye, pc.inter.m_obj->GetMaterial()->m_Shininess);
+			specular = light.GetIntensity() * pc.inter.m_obj->GetMaterial()->m_Specular * factor;
+		}
+	}
+	return ambient + diffuse + specular;
+}
 template<typename T>
 const INTERSECTIONS ClosestHit(T& vector, const uint32_t size);
 const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
@@ -86,7 +122,7 @@ inline const void SortIntersections(std::vector<INTERSECTIONS>& vector) { std::s
 bool IsShadow(World* world, Tuple::Pos point);
 inline const Color Shade_Hit(World& world, const PRECOMPUTATIONS& pc)
 {
-	return Lighting(pc.inter.m_obj->GetMaterial(), world.GetLight(), pc.point, pc.eyev, pc.normalv, IsShadow(&world, pc.over_point));
+	return Lighting(pc, world.GetLight(), IsShadow(&world, pc.over_point));
 }
 const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector);
 const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
