@@ -66,10 +66,19 @@ inline const Color Lighting(const PRECOMPUTATIONS& pc, Light light, bool is_shad
 	Color diffuse, specular;
 	Color effective_color;
 
-	
 	if (pc.inter.m_obj->GetMaterial()->m_haspattern == true)
 	{
-		effective_color = StripeAtObject(pc.inter.m_obj, pc.inter.m_obj->GetMaterial()->m_pattern, pc.point);
+		const Tuple::Pos objpoint {pc.inter.m_obj->GetInvTransform() * pc.point};
+		const Tuple::Pos patpoint { pc.inter.m_obj->GetMaterial()->m_pattern.GetInvTransform() * objpoint};
+		switch (pc.inter.m_obj->GetMaterial()->m_pattern.GetPattern())
+		{
+			case PATTERNTYPE::STRIPES: effective_color = StripeAt(pc.inter.m_obj->GetMaterial()->m_pattern, patpoint); break;
+			case PATTERNTYPE::CHECKER2D: effective_color = Checker2DAt(pc.inter.m_obj->GetMaterial()->m_pattern, patpoint); break;
+			case PATTERNTYPE::CHECKER3D: effective_color = Checker3DAt(pc.inter.m_obj->GetMaterial()->m_pattern, patpoint); break;
+			case PATTERNTYPE::INTERPOLATE: effective_color = GradientAt(pc.inter.m_obj->GetMaterial()->m_pattern, patpoint); break;
+			case PATTERNTYPE::RING: effective_color = RingAt(pc.inter.m_obj->GetMaterial()->m_pattern, patpoint); break;
+			default: break;
+		}
 	}
 	else
 	{

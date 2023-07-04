@@ -7,7 +7,7 @@
 #include <vector>
 #include <algorithm>
 
-enum class TYPE : uint32_t{SPHERE = 0, PLANE};
+enum class OBJTYPE : uint32_t { SPHERE = 0, PLANE};
 
 class Object
 {
@@ -20,7 +20,7 @@ public:
 	virtual void SetTransform(const Matrix4x4f& t) = 0;
 	virtual const void SetMaterial(const Materials::Materials& material) = 0;
 	virtual const uint32_t GetId() const = 0;
-	virtual const TYPE GetType() const = 0;
+	virtual const OBJTYPE GetType() const = 0;
 
 protected:
 	static uint32_t GenerateId()
@@ -43,7 +43,7 @@ public:
 	const Matrix4x4f GetInvTransform() const { return m_InvTransform; }
 	const Matrix4x4f GetTransform() const { return m_transform; }
 	const uint32_t GetId() const override { return m_Id; }
-	const TYPE GetType() const override { return TYPE::SPHERE; }
+	const OBJTYPE GetType() const override { return OBJTYPE::SPHERE; }
 
 private:
 	Matrix4x4f m_transform;
@@ -56,7 +56,7 @@ class Plane : public Object
 {
 public:
 	Plane() : m_Id(GenerateId()), m_transform(IdentityMat4x4f()), m_InvTransform(IdentityMat4x4f()), m_MaterialType(DefaultMaterial) {}
-	Plane(const Materials::Materials& mat) { m_Id = GenerateId(); m_transform = IdentityMat4x4f(); m_MaterialType = mat; }
+	Plane(const Materials::Materials& mat) { m_Id = GenerateId(); m_transform = IdentityMat4x4f(); m_MaterialType = mat;  }
 	~Plane() {}
 
 	void SetTransform(const Matrix4x4f& t) override { m_transform = t; m_InvTransform = m_transform.Invert();}
@@ -65,7 +65,7 @@ public:
 	const Matrix4x4f GetInvTransform() const { return m_InvTransform; }
 	const Matrix4x4f GetTransform() const { return m_transform; }
 	const uint32_t GetId() const override { return m_Id; }
-	const TYPE GetType() const override { return TYPE::PLANE; }
+	const OBJTYPE GetType() const override { return OBJTYPE::PLANE; }
 
 private:
 	Matrix4x4f m_transform;
@@ -163,15 +163,13 @@ private:
 	float m_Arr_halfVWH[3];
 };
 
+// Object-related functions
 inline const Tuple::Pos NormalAt(Object* obj, Tuple::Pos point)
 {
-	if (obj->GetType() == TYPE::PLANE)
+	if (obj->GetType() == OBJTYPE::PLANE)
 	{
-		return Tuple::Vector(0, 1, 0);
+		return obj->GetTransform() * Tuple::Pos(0, 1, 0);
 	}
-// if it's a translation transform, just return the xyz vector
-//	if ((x[3] != 0 || x[7] != 0 || x[11] != 0) && obj->GetType() == TYPE::PLANE)
-//		return Tuple::Pos(x[3], x[7], x[11]);
 	else
 	{		
 		const Tuple::Pos object_point { obj->GetInvTransform() * point };
@@ -182,12 +180,5 @@ inline const Tuple::Pos NormalAt(Object* obj, Tuple::Pos point)
 		return Normalize(world_normal);
 	}
 };
-
-inline const Color StripeAtObject(Object* obj, PATTERNS pattern, Tuple::Pos worldpoint)
-{
-	const Tuple::Pos objpoint {obj->GetInvTransform() * worldpoint};
-	const Tuple::Pos patpoint {pattern.GetInvTransform() * objpoint};
-	return pattern.StripeAt(patpoint);
-}
 
 #endif

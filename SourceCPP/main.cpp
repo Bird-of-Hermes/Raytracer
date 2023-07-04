@@ -144,53 +144,54 @@ void Chapter10(float x = 720, float y = 480)
 {
 	World world;
 
-	const Materials::Materials middlemat {{ROYALBLUE, VIOLET}, 0.1f, 0.7f, 0.3f, 100.0f};
+	const Materials::Materials middlemat {{BLUE, RED}, 0.1f, 0.4f, 0.25f, 150.0f};
 	world.AddObject(new Sphere()); // middle sphere [0]
-	world.getObjVector()[0]->SetTransform(Translate(-0.45f, 1.0f, 0.5f));
+	world.getObjVector()[0]->SetTransform(Translate(-0.9f, 1.0f, 0.5f));
 	world.getObjVector()[0]->SetMaterial(middlemat);
-	world.getObjVector()[0]->GetMaterial()->EnablePattern();
-	const auto ptransform1 = Translate(1.5f, 1.5f, 1.5f) * Scale(0.25f, 0.25f, 0.25f);
-	world.getObjVector()[0]->GetMaterial()->m_pattern.SetTransform(ptransform1);
+	world.getObjVector()[0]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER3D);
+	world.getObjVector()[0]->GetMaterial()->m_pattern.SetTransform(RotateXaxis(10.0f));
 
-	const Materials::Materials rightmat {{0.125f, 0.125f, 0.125f}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
+	const Materials::Materials rightmat {{PURPLEBLUE}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
 	world.AddObject(new Sphere()); // right sphere [1]
 	world.getObjVector()[1]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
-	world.getObjVector()[1]->SetMaterial(PETROLEUM);
+	world.getObjVector()[1]->SetMaterial(rightmat);
 
 	const Materials::Materials leftmat {{ORANGE}, 0.1f, 0.7f, 0.3f, 100.0f};
 	world.AddObject(new Sphere()); // left sphere [2]
-	world.getObjVector()[2]->SetTransform(Translate(-1.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
+	world.getObjVector()[2]->SetTransform(Translate(-0.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
 	world.getObjVector()[2]->SetMaterial(leftmat);
 
-	//(TURQUOISE) / 2.0f + WHITE
-	const Materials::Materials mat {{SILVER, WHITE}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor/wall material
+	const Materials::Materials mat {{GRAY, WHITE}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor material
 	world.AddObject(new Plane()); // floor [3]
 	world.getObjVector()[3]->SetMaterial(mat);
-	const auto ptransform = RotateYaxis(90.0f) * Scale(0.1f, 0.1f, 0.1f);
-	world.getObjVector()[3]->GetMaterial()->m_pattern.SetTransform(ptransform);
+	world.getObjVector()[3]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER2D);
+	world.getObjVector()[3]->GetMaterial()->m_pattern.SetTransform(Scale(1.0f, 1.0f, 1.0f));
+
+	const Materials::Materials bw {{WHITE, GOLD}, 0.5f, 0.5f, 0.5f, 100.0f}; // backwall material
+	world.AddObject(new Plane()); // backwall [4]
+	world.getObjVector()[4]->SetMaterial(bw);
+	world.getObjVector()[4]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::RING);
+	world.getObjVector()[4]->SetTransform(RotateXaxis(90.0f) * Translate(0, 3.0f, 0));
+	world.getObjVector()[4]->GetMaterial()->m_pattern.SetTransform(Translate(3.6f, 0, -4.1f));
 
 	// world light
-	world.SetLight({ Pt(-10.0f,10.0f,-10.0f), WHITE });
+	world.SetLight({ Pt(10.0f, 7.0f, -10.0f), WHITE });
 
 	Camera camera{ x, y, 96.3f };
 	camera.SetTransform(ViewTransform(Pt(0, 3.0f, -4.0f), Pt(0, 1, 0), Vec(0, 1, 0)));
 
 	Render(camera, world);
 }
+
 void Teste()
 {
-	Sphere s;
-	s.SetTransform(Scale(2, 2, 2));
-	s.GetMaterial()->EnablePattern();
-	PATTERNS f;
-	f.SetTransform(Translate(0.5f,0,0));
-	std::cout << StripeAtObject(&s, f, Pt(2.5f, 0, 0));
+
 }
 
 int main()
 {
 	//~~~~~~~~~~~~~~~~~~~~~~~~ TIMER ~~~~~~~~~~~~~~~~~~~~~~~~~//
-	//const Timer timer;
+	const Timer timer;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
 	// ~~~~~~~~~~ SD(720p, 480) ~~ HD(1280p, 720) ~~ FULLHD(1920p, 1080) ~~ UHD(3840p, 2160) ~~ MAXHD(7680p, 4320) ~~~~~~~~~~~~~~ //
 	
@@ -199,10 +200,11 @@ int main()
 	//Chapter6();
 	//Chapter7(MAXHD); // ~4.5s @ MAXHD without inv.transform in memory + cached // 1.9s cached @ same
 	//Chapter9(FULLHD);
-	Chapter10(MAXHD); // 1.274s
+	Chapter10(UHD);
 	//Teste();
 	
-	//system("Files\\RAYTRACER.ppm");
 
+	//system("Files\\RAYTRACER.ppm");
+	
 	return 0;
 }

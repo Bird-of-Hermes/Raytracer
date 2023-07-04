@@ -183,7 +183,7 @@ public:
 	{
 		for (size_t i = 0; i < 16; i++)
 		{
-			if (matrix[i] - b.matrix[i] > ERRORMARGIN || b.matrix[i] - matrix[i] > ERRORMARGIN)
+			if (fabsf(matrix[i] - b.matrix[i]) > ERRORMARGIN)
 				return false;
 		}
 		return true;

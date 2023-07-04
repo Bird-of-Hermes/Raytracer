@@ -31,10 +31,10 @@ namespace Tuple
 		float m_type;
 
 		Pos(float x = 0.0f, float y = 0.0f, float z = 0.0f, float type = 0) : m_x(x), m_y(y), m_z(z), m_type(type) {} // true (1) for points, false (0) for vectors
-		inline Pos operator+(const Pos& b) const { return { this->m_x + b.m_x, this->m_y + b.m_y, this->m_z + b.m_z, abs(this->m_type + b.m_type) }; }
-		inline Pos operator-(const Pos& b) const{ return { this->m_x - b.m_x, this->m_y - b.m_y, this->m_z - b.m_z, abs(this->m_type - b.m_type) }; }
+		inline Pos operator+(const Pos& b) const { return { this->m_x + b.m_x, this->m_y + b.m_y, this->m_z + b.m_z, fabsf(this->m_type + b.m_type) }; }
+		inline Pos operator-(const Pos& b) const{ return { this->m_x - b.m_x, this->m_y - b.m_y, this->m_z - b.m_z, fabsf(this->m_type - b.m_type) }; }
 		inline Pos operator-() const { return { -m_x, -m_y, -m_z }; }
-		inline Pos operator*(const Pos& b) const { return { this->m_x * b.m_x, this->m_y * b.m_y, this->m_z * b.m_z, abs(this->m_type * b.m_type) }; }
+		inline Pos operator*(const Pos& b) const { return { this->m_x * b.m_x, this->m_y * b.m_y, this->m_z * b.m_z, fabsf(this->m_type * b.m_type) }; }
 		inline Pos operator*(float b) const { return { this->m_x * b, this->m_y * b, this->m_z * b }; }
 		friend std::ostream& operator<<(std::ostream& os, const Pos& pos) 
 		{
@@ -51,7 +51,7 @@ namespace Tuple
 	inline const Pos Vector(Pos xyz) { return { xyz.m_x, xyz.m_y, xyz.m_z, 0 }; }
 	inline const Pos Point(float x, float y, float z) { return Pos{ x,y,z, 1 }; }
 	inline const Pos Point(Pos xyz) { return { xyz.m_x, xyz.m_y, xyz.m_z, 1 }; }
-	inline const bool Equals(float a, float b) { if (abs(a - b) < ERRORMARGIN) return true; else return false; }
+	inline const bool Equals(float a, float b) { if (fabsf(a - b) < ERRORMARGIN) return true; else return false; }
 	inline const float Magnitude(const Pos& a) { return std::sqrtf(a.m_x * a.m_x + a.m_y * a.m_y + a.m_z * a.m_z); }
 	inline const Pos Normalize(const Pos& a) 
 	{
@@ -73,7 +73,7 @@ struct Color
 	Color(Tuple::Pos rgb) { r = rgb.m_x; g = rgb.m_y; b = rgb.m_z; }
 	
 	const Color operator+(const Color& other) const { return { (r + other.r) , (g + other.g), (b + other.b) }; }
-	const Color operator-(const Color& other) const { return { abs(r - other.r), abs(g - other.g), abs(b - other.b) }; }
+	const Color operator-(const Color& other) const { return { fabsf(r - other.r), fabsf(g - other.g), fabsf(b - other.b) }; }
 	const Color operator*(const Color& other) const { return { r * other.r, g * other.g, b * other.b }; }
 	const Color operator*(float other) const { return { r * other, g * other, b * other }; }
 	const Color operator/(float other) const { return { r / other, g / other, b / other }; }

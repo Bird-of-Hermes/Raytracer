@@ -93,9 +93,9 @@ const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTER
 	{
 		const Ray InverseRay = { obj->GetInvTransform() * R.GetOrigin(), obj->GetInvTransform() * R.GetDirection() };
 		
-		if (obj->GetType() == TYPE::PLANE)
+		if (obj->GetType() == OBJTYPE::PLANE)
 		{
-			if ( abs(InverseRay.GetDirection().m_y) < ERRORMARGIN)
+			if ( fabsf(InverseRay.GetDirection().m_y) < ERRORMARGIN)
 				return;
 			
 			vector.fill_in({ -InverseRay.GetOrigin().m_y / InverseRay.GetDirection().m_y, *obj });
@@ -121,9 +121,9 @@ const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTER
 	}
 	else
 	{
-		if (obj->GetType() == TYPE::PLANE)
+		if (obj->GetType() == OBJTYPE::PLANE)
 		{
-			if ( abs(R.GetDirection().m_y) < ERRORMARGIN)
+			if ( fabsf(R.GetDirection().m_y) < ERRORMARGIN)
 				return;
 		
 			vector.fill_in({ -R.GetOrigin().m_y / R.GetDirection().m_y, *obj });
