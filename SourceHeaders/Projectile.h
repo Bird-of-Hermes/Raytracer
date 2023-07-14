@@ -24,7 +24,7 @@ struct Environment
 	Environment(float gx, float gy, float gz, float wx, float wy, float wz) : m_gravity(gx, gy, gz), m_wind(wx, wy, wz) {}
 };
 
-Projectile tick(Environment env, Projectile proj) 
+inline Projectile tick(Environment env, Projectile proj) 
 { 
 	const Tuple::Pos position = proj.m_coord + proj.velocity;
 	const Tuple::Pos velocity = proj.velocity + env.m_gravity + env.m_wind;

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <memory>
 #include <cmath>
+
 #define Pt Tuple::Point
 #define Vec Tuple::Vector
 
@@ -20,6 +21,11 @@
 #define UHD 3840.0f, 2160.0f
 #define MAXHD 7680.0f, 4320.0f
 #define PI 180.0f
+
+Sphere glassSphere()
+{
+	return Sphere{GLASS};
+}
 
 void Chapter5(int x = 480, int y = 480)
 {
@@ -57,7 +63,7 @@ void Chapter5(int x = 480, int y = 480)
 				canv.WritePixel(i, j, BLACK);
 		}
 	}
-	canv.ExportAsPPM();
+	canv.ExportAsPPM("Files/Chapter5.ppm");
 
 	// time measurement .end
 	const auto end = std::chrono::high_resolution_clock::now();
@@ -144,7 +150,7 @@ void Chapter10(float x = 720, float y = 480)
 {
 	World world;
 
-	const Materials::Materials middlemat {{BLUE, RED}, 0.1f, 0.4f, 0.25f, 150.0f};
+	const Materials::Materials middlemat {{VIOLET, GRAY}, 0.1f, 0.4f, 0.25f, 150.0f};
 	world.AddObject(new Sphere()); // middle sphere [0]
 	world.getObjVector()[0]->SetTransform(Translate(-0.9f, 1.0f, 0.5f));
 	world.getObjVector()[0]->SetMaterial(middlemat);
@@ -167,42 +173,128 @@ void Chapter10(float x = 720, float y = 480)
 	world.getObjVector()[3]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER2D);
 	world.getObjVector()[3]->GetMaterial()->m_pattern.SetTransform(Scale(1.0f, 1.0f, 1.0f));
 
-	const Materials::Materials bw {{WHITE, GOLD}, 0.5f, 0.5f, 0.5f, 100.0f}; // backwall material
+	const Materials::Materials bw {{GRAY, BLACK}, 0.5f, 0.5f, 0.5f, 100.0f}; // backwall material
 	world.AddObject(new Plane()); // backwall [4]
 	world.getObjVector()[4]->SetMaterial(bw);
-	world.getObjVector()[4]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::RING);
-	world.getObjVector()[4]->SetTransform(RotateXaxis(90.0f) * Translate(0, 3.0f, 0));
+	world.getObjVector()[4]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER2D);
+	world.getObjVector()[4]->SetTransform(RotateXaxis(60.0f) * Translate(0, 3.0f, 0));
 	world.getObjVector()[4]->GetMaterial()->m_pattern.SetTransform(Translate(3.6f, 0, -4.1f));
 
 	// world light
-	world.SetLight({ Pt(10.0f, 7.0f, -10.0f), WHITE });
+	world.SetLight({ Pt(19.0f, 21.0f, -10.0f), WHITE });
 
 	Camera camera{ x, y, 96.3f };
 	camera.SetTransform(ViewTransform(Pt(0, 3.0f, -4.0f), Pt(0, 1, 0), Vec(0, 1, 0)));
 
 	Render(camera, world);
 }
+void Chapter11(float x = 720, float y = 480)
+{
+	World world;
+	
+	const Materials::Materials middlemat {{BLACK}, 0.1f, 0.4f, 0.25f, 150.0f};
+	world.AddObject(new Sphere()); // middle sphere [0]
+	world.getObjVector()[0]->SetTransform(Translate(-0.9f, 1.0f, 0.5f));
+	world.getObjVector()[0]->SetMaterial(middlemat);
+	world.getObjVector()[0]->GetMaterial()->DisablePattern();
+	world.getObjVector()[0]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER3D);
+	world.getObjVector()[0]->GetMaterial()->m_pattern.SetTransform(RotateXaxis(10.0f));
+	world.getObjVector()[0]->GetMaterial()->m_Reflectiveness = 0.95f;
+	
+	const Materials::Materials rightmat {{PURPLEBLUE}, 0.1f, 0.7f, 0.3f, 100.0f}; // petroleum
+	world.AddObject(new Sphere()); // right sphere [1]
+	world.getObjVector()[1]->SetTransform(Translate(1.5f, 0.5f, -0.5f) * Scale(0.5f, 0.5f, 0.5f));
+	world.getObjVector()[1]->SetMaterial(rightmat);
+	world.getObjVector()[1]->GetMaterial()->m_Reflectiveness = 0.45f;
+	
+	const Materials::Materials leftmat {{ORANGE}, 0.1f, 0.7f, 0.3f, 100.0f};
+	world.AddObject(new Sphere()); // left sphere [2]
+	world.getObjVector()[2]->SetTransform(Translate(-0.5f, 0.33f, -0.75f) * Scale(0.33f, 0.33f, 0.33f));
+	world.getObjVector()[2]->SetMaterial(leftmat);
+	world.getObjVector()[2]->GetMaterial()->m_Reflectiveness = 0.45f;
+	
+	const Materials::Materials mat {{CYAN/3}, 0.5f, 0.5f, 0.5f, 100.0f}; // floor material
+	world.AddObject(new Plane()); // floor [3]
+	world.getObjVector()[3]->SetMaterial(mat);
+	world.getObjVector()[3]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER2D);
+	world.getObjVector()[3]->GetMaterial()->DisablePattern();
+	world.getObjVector()[3]->GetMaterial()->m_pattern.SetTransform(Scale(1.0f, 1.0f, 1.0f));
+	world.getObjVector()[3]->GetMaterial()->m_Reflectiveness = 0.275f;
+	
+	const Materials::Materials bw {{SILVER/2}, 0.5f, 0.5f, 0.5f, 100.0f}; // backwall material
+	world.AddObject(new Plane()); // backwall [4]
+	world.getObjVector()[4]->SetMaterial(bw);
+	world.getObjVector()[4]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER2D);
+	world.getObjVector()[4]->GetMaterial()->DisablePattern();
+	world.getObjVector()[4]->SetTransform(RotateXaxis(90.0f) * Translate(0, 3.0f, 0));
+	world.getObjVector()[4]->GetMaterial()->m_pattern.SetTransform(Translate(3.6f, 0, -4.1f));
+	world.getObjVector()[4]->GetMaterial()->m_Reflectiveness = 0.55f;
 
+	const Materials::Materials fw {GRAY, 0.0f, 0.0f, 0.0f, 0.0f};
+	world.AddObject(new Plane()); // frontwall [5]
+	world.getObjVector()[5]->SetMaterial(bw);
+	world.getObjVector()[5]->GetMaterial()->DisablePattern();
+	world.getObjVector()[5]->SetTransform(RotateXaxis(90.0f) * Translate(0, -11.0f, 0));
+	//world.getObjVector()[5]->GetMaterial()->m_Reflectiveness = 0.275f;
+	//world.getObjVector()[5]->GetMaterial()->m_pattern.SetPattern(PATTERNTYPE::CHECKER2D);
+
+	const Materials::Materials roof {GRAY, 0.0f, 0.0f, 0.0f, 0.0f};
+	world.AddObject(new Plane()); // roof [6]
+	world.getObjVector()[6]->SetMaterial(roof);
+	world.getObjVector()[6]->GetMaterial()->DisablePattern();
+	world.getObjVector()[6]->SetTransform(Translate(0, 23.0f, 0));
+		
+	// world light
+	world.SetLight({ Pt(19.0f, 21.0f, -10.0f), WHITE });
+	
+	Camera camera {x, y, 95.8f};
+	camera.SetTransform(ViewTransform(Pt(0, 2.5f, -2.5f), Pt(0, 1, 0), Vec(0, 1, 0)));
+	
+	Render(camera, world);
+}
 void Teste()
 {
+	Sphere A{ GLASS };
+	A.SetTransform(Scale(2, 2, 2));
+	A.GetMaterial()->m_RefractiveIndex = 1.5f;
+	Sphere B{ GLASS };
+	B.SetTransform(Translate(0, 0, -0.25));
+	B.GetMaterial()->m_RefractiveIndex = 2.0f;
+	Sphere C{ GLASS };
+	C.SetTransform(Translate(0, 0, 0.25));
+	C.GetMaterial()->m_RefractiveIndex = 2.5f;
 
+	Ray r{ Pt(0,0,-4), Vec(0,0,1) };
+	INTERSECTIONS i1{2.0f, A};
+	INTERSECTIONS i2{2.75f, B};
+	INTERSECTIONS i3{3.25f, C};
+	INTERSECTIONS i4{ 4.75f, B };
+	INTERSECTIONS i5{ 5.25f, C };
+	INTERSECTIONS i6{ 6.0f, A };
+
+	PRECOMPUTATIONS comps1{ r, i1};
+	PRECOMPUTATIONS comps2{ r, i2 };
+	PRECOMPUTATIONS comps3{ r, i3 };
+	PRECOMPUTATIONS comps4{ r, i4 };
+	PRECOMPUTATIONS comps5{ r, i5 };
+	PRECOMPUTATIONS comps6{ r, i6 };
 }
 
 int main()
 {
 	//~~~~~~~~~~~~~~~~~~~~~~~~ TIMER ~~~~~~~~~~~~~~~~~~~~~~~~~//
-	const Timer timer;
+	// Timer timer;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
 	// ~~~~~~~~~~ SD(720p, 480) ~~ HD(1280p, 720) ~~ FULLHD(1920p, 1080) ~~ UHD(3840p, 2160) ~~ MAXHD(7680p, 4320) ~~~~~~~~~~~~~~ //
 	
 	//CanvasTest();
 	//Chapter5();
 	//Chapter6();
-	//Chapter7(MAXHD); // ~4.5s @ MAXHD without inv.transform in memory + cached // 1.9s cached @ same
+	//Chapter7(MAXHD);
 	//Chapter9(FULLHD);
-	Chapter10(UHD);
+	//Chapter10(MAXHD);
+	Chapter11(UHD);
 	//Teste();
-	
 
 	//system("Files\\RAYTRACER.ppm");
 	

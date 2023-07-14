@@ -93,7 +93,7 @@ public:
 	}
 	constexpr void SetLight(const Light & light) { m_Lumini = light;}
 	const Light GetLight() const { return m_Lumini; }
-	const Utils::Vector<Object*> getObjVector() const { return m_ObjVector;}
+	const Utils::Vector<Object*>& getObjVector() const { return m_ObjVector;}
 
 private:
 	Utils::Vector<Object*> m_ObjVector;
@@ -180,5 +180,4 @@ inline const Tuple::Pos NormalAt(Object* obj, Tuple::Pos point)
 		return Normalize(world_normal);
 	}
 };
-
 #endif

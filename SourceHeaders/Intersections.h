@@ -2,6 +2,7 @@
 #define INTERSECTIONS_H
 
 #include <algorithm>
+#include <memory>
 #include <vector>
 #include "Ray.h"
 #include "Tuples.h"
@@ -12,7 +13,7 @@
 // STRUCTS
 struct INTERSECTIONS
 {
-	INTERSECTIONS() = default;
+	INTERSECTIONS() : m_t(NULL), m_obj(nullptr) {}
 	INTERSECTIONS(float point, Object& object) : m_t(point), m_obj(&object) {}
 	const bool operator<(const INTERSECTIONS& other) const
 	{
@@ -27,8 +28,8 @@ struct INTERSECTIONS
 	}
 
 public:
-	Object* m_obj;
 	float m_t;
+	Object* m_obj;
 };
 struct PRECOMPUTATIONS
 {
@@ -50,18 +51,50 @@ struct PRECOMPUTATIONS
 			inside = false;
 		}
 		over_point = point + normalv * ERRORMARGIN;
+		reflectv = Tuple::Reflect(ray.GetDirection(), normalv);
 	}
+	PRECOMPUTATIONS(const Ray& ray, const INTERSECTIONS& intersection, const Utils::Static_Array<INTERSECTIONS, 12>& xs) :
+		inter(intersection),
+		point(ray.Position(intersection.m_t)),
+		eyev(-ray.GetDirection())
+	{
+		normalv = NormalAt(intersection.m_obj, point);
+		const float z = Tuple::DotProduct(normalv, eyev);
+		if (z < 0)
+		{
+			inside = true;
+			normalv = -normalv;
+		}
+		else
+		{
+			inside = false;
+		}
+		over_point = point + normalv * ERRORMARGIN;
+		reflectv = Tuple::Reflect(ray.GetDirection(), normalv);
+		/////////////////////////////////////////////
+		//for (size_t i = 0; i < xs.size(); i++)
+		//{/*
+		//	if (xs[i])
+		//	{
 
+		//	}*/
+		//}
+
+	}
 public:
 	INTERSECTIONS inter;
 	Tuple::Pos point;
 	Tuple::Pos eyev;
 	Tuple::Pos normalv;
 	Tuple::Pos over_point;
+	Tuple::Pos reflectv;
 	bool inside;
 };
 
-inline const Color Lighting(const PRECOMPUTATIONS& pc, Light light, bool is_shadow)
+const Color HeapColorAt(World* world, const Ray& ray);
+const Color ColorAt(World* world, const Ray& ray);
+
+inline const Color Lighting(const PRECOMPUTATIONS& pc, const Light& light, bool is_shadow)
 {
 	Color diffuse, specular;
 	Color effective_color;
@@ -95,44 +128,210 @@ inline const Color Lighting(const PRECOMPUTATIONS& pc, Light light, bool is_shad
 	if (light_dot_normal >= 0)
 	{
 		diffuse = effective_color * pc.inter.m_obj->GetMaterial()->m_Diffuse * light_dot_normal;
-		const Tuple::Pos reflectv = Tuple::Reflect(-lightv, pc.normalv);
-		const float reflect_dot_eye = Tuple::DotProduct(reflectv, pc.eyev);
+		const float reflect_dot_eye = Tuple::DotProduct(pc.reflectv, pc.eyev);
 
 		if (reflect_dot_eye > 0)
 		{
-			const float factor = std::powf(reflect_dot_eye, pc.inter.m_obj->GetMaterial()->m_Shininess);
-			specular = light.GetIntensity() * pc.inter.m_obj->GetMaterial()->m_Specular * factor;
+			//const float factor = std::powf(reflect_dot_eye, pc.inter.m_obj->GetMaterial()->m_Shininess);
+			specular = light.GetIntensity() * pc.inter.m_obj->GetMaterial()->m_Specular * std::powf(reflect_dot_eye, pc.inter.m_obj->GetMaterial()->m_Shininess);
 		}
 	}
 	return ambient + diffuse + specular;
 }
-template<typename T>
-const INTERSECTIONS ClosestHit(T& vector, const uint32_t size);
-const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
-template <uint32_t Size>
-const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, Size>& vector);
-const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIONS>& vector);
-template <uint32_t Size>
-inline const void IntersectWorld(World* world, const Ray& R, Utils::Static_Array<INTERSECTIONS, Size>& vector)
-{
-	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
-	{
-		FullIntersection(world->getObjVector().operator[](i), R, vector);
-	}
-}
-inline const void IntersectWorld(World* world, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
-{
-	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
-	{
-		FullIntersection(world->getObjVector().operator[](i), R, vector);
-	}
-}
-inline const void SortIntersections(std::vector<INTERSECTIONS>& vector) { std::sort(vector.begin(), vector.end()); }
+
+const INTERSECTIONS ClosestHit(const Utils::Vector<INTERSECTIONS>& vector);
+const INTERSECTIONS ClosestHit(Utils::Static_Array<INTERSECTIONS,12> vector);
+
 bool IsShadow(World* world, Tuple::Pos point);
+bool HeapIsShadow(World* world, Tuple::Pos point);
+
+static thread_local uint32_t recursion = 0;
+inline const Color ReflectedColor(World* world, const PRECOMPUTATIONS& comps)
+{
+	if (comps.inter.m_obj->GetMaterial()->m_Reflectiveness == 0)
+	{
+		return BLACK;
+	}
+	if (recursion < 1024) // 256 = 16 samples ~ 1024 = 32 samples
+	{
+		++recursion;
+	}
+	else
+	{
+		recursion = 0;
+		return BLACK;
+	}
+	return ColorAt(world, { comps.over_point, comps.reflectv }) * comps.inter.m_obj->GetMaterial()->m_Reflectiveness;
+	// Ray reflectedRay{comps.over_point, comps.reflectv};
+	// Color colorat{ ColorAt(world, {comps.over_point, comps.reflectv}, array) };
+	// return colorat * m_Reflectiveness;
+}
+inline const Color HeapReflectedColor(World* world, const PRECOMPUTATIONS& comps)
+{
+	if (comps.inter.m_obj->GetMaterial()->m_Reflectiveness == 0)
+	{
+		return BLACK;
+	}
+	if (recursion < 2768) // 256 = 16 samples ~ 1024 = 32 samples
+	{
+		++recursion;
+	}
+	else
+	{
+		recursion = 0;
+		return BLACK;
+	}
+	return HeapColorAt(world, { comps.over_point, comps.reflectv }) * comps.inter.m_obj->GetMaterial()->m_Reflectiveness;
+	// Ray reflectedRay{comps.over_point, comps.reflectv};
+	// Color colorat{ ColorAt(world, {comps.over_point, comps.reflectv}, array) };
+	// return colorat * m_Reflectiveness;
+}
+
 inline const Color Shade_Hit(World& world, const PRECOMPUTATIONS& pc)
 {
-	return Lighting(pc, world.GetLight(), IsShadow(&world, pc.over_point));
+	return ReflectedColor(&world, pc) + Lighting(pc, world.GetLight(), IsShadow(&world, pc.over_point));
 }
-const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector);
-const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector);
+inline const Color HeapShade_Hit(World& world, const PRECOMPUTATIONS& pc)
+{
+	return HeapReflectedColor(&world, pc) + Lighting(pc, world.GetLight(), IsShadow(&world, pc.over_point));
+}
+
+inline const Utils::Static_Array<INTERSECTIONS, 12> IntersectWorld(World* world, const Ray& R)
+{
+	Utils::Static_Array<INTERSECTIONS, 12> vector;
+	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
+	{
+		if (!world->getObjVector()[i]->GetTransform().isEqual(IdentityMat4x4f()))
+		{
+			const Ray InverseRay = { world->getObjVector()[i]->GetInvTransform() * R.GetOrigin(), world->getObjVector()[i]->GetInvTransform() * R.GetDirection() };
+
+			if (world->getObjVector()[i]->GetType() == OBJTYPE::PLANE)
+			{
+				if (fabsf(InverseRay.GetDirection().m_y) < ERRORMARGIN)
+					continue;
+
+				vector.fill_in({ -InverseRay.GetOrigin().m_y / InverseRay.GetDirection().m_y, *world->getObjVector()[i] });
+					continue;
+			}
+
+			const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
+			const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
+			const float b = 2.0f * Tuple::DotProduct(InverseRay.GetDirection(), SphereToRay);
+
+			// b²-4ac
+			const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
+
+			// if it doesn't intersect
+			if (discriminant < 0)
+				continue;
+
+			const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
+			const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
+
+			vector.fill_in({ i1, *world->getObjVector()[i] });
+			vector.fill_in({ i2, *world->getObjVector()[i] });
+		}
+		else
+		{
+			if (world->getObjVector()[i]->GetType() == OBJTYPE::PLANE)
+			{
+				if (fabsf(R.GetDirection().m_y) < ERRORMARGIN)
+					continue;
+
+				vector.fill_in({ -R.GetOrigin().m_y / R.GetDirection().m_y, *world->getObjVector()[i] });
+					continue;
+			}
+
+			const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
+			const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
+			const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
+
+			// b²-4ac
+			const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
+
+			// if it doesn't intersect
+			if (discriminant < 0)
+				continue;
+
+			const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
+			const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
+
+			vector.fill_in({ i1, *world->getObjVector()[i] });
+			vector.fill_in({ i2, *world->getObjVector()[i] });
+		}
+	}
+	return vector;
+}
+inline const Utils::Vector<INTERSECTIONS> HeapIntersectWorld(World* world, const Ray& R)
+{
+	Utils::Vector<INTERSECTIONS>* vector;
+	Mem.Next(&vector);
+	for (uint32_t i = 0; i < world->getObjVector().size(); i++)
+	{
+		if (!world->getObjVector()[i]->GetTransform().isEqual(IdentityMat4x4f()))
+		{
+			Ray* InverseRay;
+			Mem.Next(&InverseRay);
+			*InverseRay = { world->getObjVector()[i]->GetInvTransform() * R.GetOrigin(), world->getObjVector()[i]->GetInvTransform() * R.GetDirection() };
+
+			if (world->getObjVector()[i]->GetType() == OBJTYPE::PLANE)
+			{
+				if (fabsf(InverseRay->GetDirection().m_y) < ERRORMARGIN)
+					continue;
+
+				vector->emplace_back({ -InverseRay->GetOrigin().m_y / InverseRay->GetDirection().m_y, *world->getObjVector()[i] });
+				continue;
+			}
+
+			const Tuple::Pos SphereToRay = InverseRay->GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
+			const float a = Tuple::DotProduct(InverseRay->GetDirection(), InverseRay->GetDirection());
+			const float b = 2.0f * Tuple::DotProduct(InverseRay->GetDirection(), SphereToRay);
+
+			// b²-4ac
+			const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
+
+			// if it doesn't intersect
+			if (discriminant < 0)
+				continue;
+
+			const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
+			const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
+
+			vector->emplace_back({ i1, *world->getObjVector()[i] });
+			vector->emplace_back({ i2, *world->getObjVector()[i] });
+		}
+		else
+		{
+			if (world->getObjVector()[i]->GetType() == OBJTYPE::PLANE)
+			{
+				if (fabsf(R.GetDirection().m_y) < ERRORMARGIN)
+					continue;
+
+				vector->emplace_back({ -R.GetOrigin().m_y / R.GetDirection().m_y, *world->getObjVector()[i] });
+				continue;
+			}
+
+			const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
+			const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
+			const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
+
+			// b²-4ac
+			const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
+
+			// if it doesn't intersect
+			if (discriminant < 0)
+				continue;
+
+			const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
+			const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
+
+			vector->emplace_back({ i1, *world->getObjVector()[i] });
+			vector->emplace_back({ i2, *world->getObjVector()[i] });
+		}
+	}
+	return *vector;
+}
+
+//Exclusive to chapter 5
+const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[]);
 #endif

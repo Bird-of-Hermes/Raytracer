@@ -3,7 +3,6 @@
 #include "Tuples.h"
 #include "Projectile.h"
 #include <chrono>
-#include <omp.h>
 #include <fstream>
 
 class Canvas
@@ -36,9 +35,10 @@ public:
 		cor[y][x].b = color.b;
 	}
 
-	void ExportAsPPM()
+
+	void ExportAsPPM(std::string filepath)
 	{
-		std::ofstream fon("Files/RAYTRACER.ppm", std::ios::binary);
+		std::ofstream fon(filepath, std::ios::binary);
 
 		if (!fon.is_open())
 		{
@@ -64,8 +64,18 @@ public:
 
 		std::cout << "PPM file successfully exported" << std::endl;
 	}
-	
-	Canvas(uint32_t w, uint32_t h) : width(w), height(h)
+	void DataCopy(const Canvas& other)
+	{
+		for (int i = 0; i < height; i++)
+		{
+			for (int j = 0; j < width; j++)
+			{
+				cor[i][j] = other.cor[i][j];
+			}
+		}
+	}
+
+	explicit Canvas(uint32_t w, uint32_t h) : width(w), height(h)
 	{
 		cor = new Color * [height];
 
@@ -76,13 +86,14 @@ public:
 	{
 		for (int32_t i = 0; i < height; i++)
 		{
-			delete[] cor[i];
+			if(cor[i] != nullptr)
+				delete cor[i];
 		}
 		delete[] cor;
 	}
 };
 
-void CanvasTest()
+inline void CanvasTest()
 {
 	Canvas canv(800, 600);
 
@@ -101,8 +112,7 @@ void CanvasTest()
 		}
 	}
 
-	canv.ExportAsPPM();
-	system("pause");
+	canv.ExportAsPPM("Files/RAYTRACER.ppm");
 	system("Files\\RAYTRACER.ppm");
 }
 

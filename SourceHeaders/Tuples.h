@@ -72,6 +72,7 @@ struct Color
 	Color(float red = 0.0f, float green = 0.0f, float blue = 0.0f) : r(red), g(green), b(blue) {}
 	Color(Tuple::Pos rgb) { r = rgb.m_x; g = rgb.m_y; b = rgb.m_z; }
 	
+	const bool operator==(const Color& other) const { if (r == other.r && g == other.g && b == other.b) return true; else return false; }
 	const Color operator+(const Color& other) const { return { (r + other.r) , (g + other.g), (b + other.b) }; }
 	const Color operator-(const Color& other) const { return { fabsf(r - other.r), fabsf(g - other.g), fabsf(b - other.b) }; }
 	const Color operator*(const Color& other) const { return { r * other.r, g * other.g, b * other.b }; }

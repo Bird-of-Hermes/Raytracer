@@ -1,13 +1,12 @@
 #include "..\SourceHeaders\Intersections.h"
 
-template<typename T>
-const INTERSECTIONS ClosestHit(T& vector, const uint32_t size)
+const INTERSECTIONS ClosestHit(const Utils::Vector<INTERSECTIONS>& vector)
 {
-	float positive = 10000.0f;
-	INTERSECTIONS f = vector[0];
+	float positive = 2000.0f;
+	INTERSECTIONS f;
 	for (uint32_t i = 0; i < vector.size(); i++)
 	{
-		if (vector[i].m_t > 0.0f && vector[i].m_t < positive)
+		if (vector[i].m_t > ERRORMARGIN && vector[i].m_t < positive)
 		{
 			positive = vector[i].m_t;
 			f = vector[i];
@@ -15,7 +14,77 @@ const INTERSECTIONS ClosestHit(T& vector, const uint32_t size)
 	}
 	return f;
 }
+const INTERSECTIONS ClosestHit(Utils::Static_Array<INTERSECTIONS, 12> vector)
+{
+	float positive = 2000.0f;
+	INTERSECTIONS f;
+	for (uint32_t i = 0; i < vector.size(); i++)
+	{
+		if (vector[i].m_t > ERRORMARGIN && vector[i].m_t < positive)
+		{
+			positive = vector[i].m_t;
+			f = vector[i];
+		}
+	}
+	return f;
+}
+const Color ColorAt(World* world, const Ray& ray)
+{
+	const INTERSECTIONS f = ClosestHit(IntersectWorld(world, ray));
 
+	if (f.m_t > 0)
+		return Shade_Hit(*world, { ray, f});
+	else
+	{
+		return BLACK;
+	}
+}
+const Color HeapColorAt(World* world, const Ray& ray)
+{
+	INTERSECTIONS* f;
+	Mem.Next(&f);
+		
+	*f = ClosestHit(HeapIntersectWorld(world, ray));
+
+	if (f->m_t > 0)
+		return HeapShade_Hit(*world, { ray, *f });
+	else
+	{
+		return BLACK;
+	}
+}
+bool IsShadow(World* world, Tuple::Pos point)
+{
+	const Tuple::Pos v = world->GetLight().GetPosition() - point;
+	const float distance = Tuple::Magnitude(v);
+	//const Tuple::Pos direction = Tuple::Normalize(v);
+	//const Ray r{ point, Tuple::Normalize(v) };
+
+	const INTERSECTIONS f = ClosestHit(IntersectWorld(world, { point, Tuple::Normalize(v) }));
+
+	if (f.m_t > 0 && f.m_t < distance)
+		return true;
+	else
+		return false;
+}
+bool HeapIsShadow(World* world, Tuple::Pos point)
+{
+	const Tuple::Pos v = world->GetLight().GetPosition() - point;
+	const float distance = Tuple::Magnitude(v);
+	//const Tuple::Pos direction = Tuple::Normalize(v);
+	//const Ray r{ point, Tuple::Normalize(v) };
+
+	INTERSECTIONS* f;
+	Mem.Next(&f);
+	*f = ClosestHit(HeapIntersectWorld(world, { point, Tuple::Normalize(v) }));
+
+	if (f->m_t > 0 && f->m_t < distance)
+		return true;
+	else
+		return false;
+}
+
+// Exclusive to chapter 5
 const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
 {
 	static uint32_t z = 0;
@@ -84,154 +153,4 @@ const void Intersect(Object* obj, const Ray& R, INTERSECTIONS vector[])
 		else
 			vector[z++] = { 0.0f, *obj };
 	}
-}
-
-template <uint32_t Size>
-const void FullIntersection(Object* obj, const Ray& R, Utils::Static_Array<INTERSECTIONS, Size>& vector)
-{
-	if (!obj->GetTransform().isEqual(IdentityMat4x4f()))
-	{
-		const Ray InverseRay = { obj->GetInvTransform() * R.GetOrigin(), obj->GetInvTransform() * R.GetDirection() };
-		
-		if (obj->GetType() == OBJTYPE::PLANE)
-		{
-			if ( fabsf(InverseRay.GetDirection().m_y) < ERRORMARGIN)
-				return;
-			
-			vector.fill_in({ -InverseRay.GetOrigin().m_y / InverseRay.GetDirection().m_y, *obj });
-				return;
-		}
-
-		const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(InverseRay.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-			return;
-		
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-	else
-	{
-		if (obj->GetType() == OBJTYPE::PLANE)
-		{
-			if ( fabsf(R.GetDirection().m_y) < ERRORMARGIN)
-				return;
-		
-			vector.fill_in({ -R.GetOrigin().m_y / R.GetDirection().m_y, *obj });
-			return;
-		}
-
-		const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-			return;
-		
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-}
-const void FullIntersection(Object* obj, const Ray& R, Utils::Vector<INTERSECTIONS>& vector)
-{
-	if (!obj->GetTransform().isEqual(IdentityMat4x4f()))
-	{
-		const Ray InverseRay = { obj->GetInvTransform() * R.GetOrigin(), obj->GetInvTransform() * R.GetDirection() };
-
-		const Tuple::Pos SphereToRay = InverseRay.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(InverseRay.GetDirection(), InverseRay.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(InverseRay.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-		{
-			vector.fill_in({ 0.0f, *obj });
-			vector.fill_in({ 0.0f, *obj });
-			return;
-		}
-
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-	else
-	{
-		const Tuple::Pos SphereToRay = R.GetOrigin() - Tuple::Point(0.0f, 0.0f, 0.0f);
-		const float a = Tuple::DotProduct(R.GetDirection(), R.GetDirection());
-		const float b = 2.0f * Tuple::DotProduct(R.GetDirection(), SphereToRay);
-
-		// b²-4ac
-		const float discriminant = b * b - 4.0f * a * (Tuple::DotProduct(SphereToRay, SphereToRay) - 1.0f);
-
-		// if it doesn't intersect
-		if (discriminant < 0)
-		{
-			vector.fill_in({ 0.0f, *obj });
-			vector.fill_in({ 0.0f, *obj });
-			return;
-		}
-
-		const float i1 = (-b - std::sqrtf(discriminant)) / (2.0f * a);
-		const float i2 = (-b + std::sqrtf(discriminant)) / (2.0f * a);
-
-		vector.fill_in({ i1, *obj });
-		vector.fill_in({ i2, *obj });
-	}
-}
-const Color ColorAt(World* world, const Ray& ray, Utils::Static_Array<INTERSECTIONS, 12>& vector)
-{
-	IntersectWorld(world, ray, vector);
-
-	const INTERSECTIONS f = ClosestHit(vector, world->getObjVector().size());
-
-	if (f.m_t > 0.0f )
-		return Shade_Hit(*world, { ray, f });
-	else
-		return BLACK;
-}
-const Color ColorAt(World* world, const Ray& ray, Utils::Vector<INTERSECTIONS>& vector)
-{
-	IntersectWorld(world, ray, vector);
-
-	const INTERSECTIONS f = ClosestHit(vector, world->getObjVector().size());
-
-	if (f.m_t > 0)
-		return Shade_Hit(*world, { ray, f });
-	else
-		return GRAY;
-}
-bool IsShadow(World* world, Tuple::Pos point)
-{
-	const Tuple::Pos v = world->GetLight().GetPosition() - point;
-	const float distance = Tuple::Magnitude(v);
-	//const Tuple::Pos direction = Tuple::Normalize(v);
-	const Ray r{ point, Tuple::Normalize(v) };
-	Utils::Static_Array<INTERSECTIONS, 12> sai;
-	IntersectWorld(world, r, sai);
-	auto f = ClosestHit(sai, world->getObjVector().size());
-	if (f.m_t > 0 && f.m_t < distance)
-		return true;
-	else
-		return false;
 }
